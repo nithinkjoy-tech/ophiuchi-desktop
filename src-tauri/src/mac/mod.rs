@@ -1,2 +1,2 @@
-pub mod mac_passwords;
 pub mod mac_main;
+pub mod mac_passwords;

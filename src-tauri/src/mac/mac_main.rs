@@ -1,14 +1,11 @@
 
-mod mac_passwords;
-
 use std::env;
 use std::fs::File;
 use std::io::{self, prelude::*};
 use std::process::Command;
-use mac_passwords::{save_password,delete_password,get_password};
 
 #[tauri::command(rename_all = "snake_case")]
-fn add_line_to_hosts(hostname: String, password: String) {
+pub fn add_line_to_hosts(hostname: String, password: String) {
   // Construct the line to add to /etc/hosts
   let line_to_add = format!("127.0.0.1 {}", hostname);
   let _comment = format!("# Added by the Ophiuchi app for {}", hostname);
@@ -26,7 +23,7 @@ fn add_line_to_hosts(hostname: String, password: String) {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn delete_line_from_hosts(hostname: String, password: String) {
+pub fn delete_line_from_hosts(hostname: String, password: String) {
   backup_hosts_file(&password);
   let line_to_add = format!("127.0.0.1 {}", hostname);
   find_and_delete_line_hosts_with_sudo(&line_to_add, &password);
@@ -135,7 +132,7 @@ fn append_to_hosts_with_sudo(line: &str, password: &str) {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn add_cert_to_keychain(pem_file_path: String) -> Result<(), String> {
+pub fn add_cert_to_keychain(pem_file_path: String) -> Result<(), String> {
   // Get the user's home directory
   if let Some(home_dir) = env::var_os("HOME") {
     if let Some(home_dir_str) = home_dir.to_str() {
@@ -178,7 +175,7 @@ fn add_cert_to_keychain(pem_file_path: String) -> Result<(), String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn remove_cert_from_keychain(name: String) {
+pub fn remove_cert_from_keychain(name: String) {
   // Get the user's home directory
   if let Some(home_dir) = env::var_os("HOME") {
     if let Some(home_dir_str) = home_dir.to_str() {
@@ -214,7 +211,7 @@ fn remove_cert_from_keychain(name: String) {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn check_docker_installed() -> Result<bool, String> {
+pub fn check_docker_installed() -> Result<bool, String> {
   let output = Command::new("docker").arg("--version").output();
 
   match output {
@@ -227,38 +224,6 @@ fn check_docker_installed() -> Result<bool, String> {
     }
     Err(err) => Err(format!("Failed to execute command: {}", err)),
   }
-}
-
-fn main() {
-  let _ = fix_path_env::fix();
-
-  let client = sentry_tauri::sentry::init((
-    "https://4dba3631eee3b1e7aeec29ba11fdfb84@o4504409717800960.ingest.sentry.io/4506153853255680",
-    sentry_tauri::sentry::ClientOptions {
-      release: sentry_tauri::sentry::release_name!(),
-      ..Default::default()
-    },
-  ));
-
-  // Everything before here runs in both app and crash reporter processes
-  let _guard = sentry_tauri::minidump::init(&client);
-  // Everything after here runs in only the app process
-
-
-  tauri::Builder::default()
-    .plugin(sentry_tauri::plugin())
-    .invoke_handler(tauri::generate_handler![
-      check_docker_installed,
-      add_cert_to_keychain,
-      remove_cert_from_keychain,
-      add_line_to_hosts,
-      delete_line_from_hosts,
-      keychain_passwords::save_password,
-      keychain_passwords::get_password,
-      keychain_passwords::delete_password,
-    ])
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
 }
 
 

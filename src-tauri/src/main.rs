@@ -2,12 +2,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 #[cfg(target_os = "macos")]
-mod mac;
+    pub mod os_specific {
+        include!("mac/mac_main.rs");
+        include!("mac/mac_passwords.rs");
+    }
 
 use std::env;
-
-#[cfg(target_os = "macos")]
-use mac::mac_main;
 
 fn main() {
   let _ = fix_path_env::fix();
@@ -24,20 +24,18 @@ fn main() {
   let _guard = sentry_tauri::minidump::init(&client);
   // Everything after here runs in only the app process
 
-  #[cfg(target_os = "macos")]
-  fn get_macos_handlers() -> Vec<tauri::InvokeHandler> {
-      vec![
-          tauri::generate_handler![mac::check_docker_installed],
-          tauri::generate_handler![mac::add_cert_to_keychain],
-          tauri::generate_handler![mac::remove_cert_from_keychain],
-          tauri::generate_handler![mac::add_line_to_hosts],
-          tauri::generate_handler![mac::delete_line_from_hosts],
-      ]
-  }
-
   tauri::Builder::default()
     .plugin(sentry_tauri::plugin())
-    .invoke_handler(get_macos_handlers())
+    .invoke_handler(tauri::generate_handler![
+      os_specific::check_docker_installed,
+      os_specific::add_cert_to_keychain,
+      os_specific::remove_cert_from_keychain,
+      os_specific::add_line_to_hosts,
+      os_specific::delete_line_from_hosts,
+      os_specific::save_password,
+      os_specific::get_password,
+      os_specific::delete_password
+    ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
   // tauri::Builder::default()
