@@ -22,7 +22,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { Label } from "@radix-ui/react-label";
 import { invoke } from "@tauri-apps/api";
 import { appDataDir } from "@tauri-apps/api/path";
-import { open as shellOpen } from "@tauri-apps/api/shell";
+import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { useCallback, useEffect, useState } from "react";
 import CreateProxyV2SideComponent from "../add-new";
 import { AddProxyToGroupDialog } from "../add-new/proxy-to-group";

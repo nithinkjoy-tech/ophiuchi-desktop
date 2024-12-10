@@ -22,7 +22,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { invoke } from "@tauri-apps/api";
-import { message } from "@tauri-apps/api/dialog";
+import { message } from "@tauri-apps/plugin-dialog";
 import { appDataDir } from "@tauri-apps/api/path";
 import { Roboto_Mono } from "next/font/google";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
@@ -267,6 +267,11 @@ export default function CreateProxyV2SideComponent({
                                       },
                                     }}
                                   />
+                                  {sslCertGenComplete === true && (
+                                    <p className="text-zinc-400 text-sm underline">
+                                      Locate Certificate on Finder...
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex justify-between items-center py-8">

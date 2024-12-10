@@ -8,9 +8,9 @@ import {
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { cn } from "@/lib/utils";
 import proxyListStore from "@/stores/proxy-list";
-import { BaseDirectory, readTextFile, writeTextFile } from "@tauri-apps/api/fs";
+import { BaseDirectory, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { appDataDir, resolveResource } from "@tauri-apps/api/path";
-import { Command } from "@tauri-apps/api/shell";
+import { Command } from "@tauri-apps/plugin-shell";
 import { useCallback, useState } from "react";
 import DockerLogModal from "../proxy-list/docker-log";
 

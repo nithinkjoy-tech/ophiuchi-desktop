@@ -1,4 +1,4 @@
-import { createDir, exists, writeTextFile } from "@tauri-apps/api/fs";
+import { createDir, exists, writeTextFile } from "@tauri-apps/plugin-fs";
 import { ProxyManager } from "..";
 import {
   CONFIG_DIR,

@@ -4,7 +4,7 @@ import {
   exists,
   readTextFile,
   writeTextFile,
-} from "@tauri-apps/api/fs";
+} from "@tauri-apps/plugin-fs";
 import { IFileManagerBase } from "../file-manager";
 import { CONFIG_DIR, GROUP_FILE_NAME, PROXY_FILE_NAME } from "./constants";
 import { IProxyData, IProxyGroupData } from "./interfaces";

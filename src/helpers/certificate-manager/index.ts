@@ -6,7 +6,7 @@ import {
   removeDir,
   removeFile,
   writeTextFile,
-} from "@tauri-apps/api/fs";
+} from "@tauri-apps/plugin-fs";
 import { resolveResource } from "@tauri-apps/api/path";
 import * as selfsigned from "selfsigned";
 
