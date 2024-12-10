@@ -1,1 +1,53 @@
-{"migrated":{"identifier":"migrated","description":"permissions that were migrated from v1","local":true,"windows":["main"],"permissions":["core:default"]}}
+{
+  "desktop-capability": {
+    "identifier": "desktop-capability",
+    "description": "",
+    "local": true,
+    "windows": [
+      "main"
+    ],
+    "permissions": [
+      "fs:default",
+      "fs:allow-app-meta-recursive",
+      "fs:allow-app-read-recursive",
+      "fs:allow-app-write-recursive",
+      "fs:allow-appdata-meta-recursive",
+      "fs:allow-appdata-read-recursive",
+      "fs:allow-appdata-write-recursive"
+    ],
+    "platforms": [
+      "linux",
+      "macOS",
+      "windows"
+    ]
+  },
+  "main-capability": {
+    "identifier": "main-capability",
+    "description": "Capability for the main window",
+    "local": true,
+    "windows": [
+      "main"
+    ],
+    "permissions": [
+      "core:path:default",
+      "core:event:default",
+      "core:window:default",
+      "core:app:default",
+      "core:resources:default",
+      "core:menu:default",
+      "core:tray:default",
+      "core:window:allow-set-title"
+    ]
+  },
+  "migrated": {
+    "identifier": "migrated",
+    "description": "permissions that were migrated from v1",
+    "local": true,
+    "windows": [
+      "main"
+    ],
+    "permissions": [
+      "core:default"
+    ]
+  }
+}
