@@ -1,7 +1,7 @@
 import {
   BaseDirectory,
-  createDir,
   exists,
+  mkdir,
   readTextFile,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
@@ -24,23 +24,23 @@ export class ProxyManager implements IFileManagerBase {
   }
 
   getBaseDir() {
-    return BaseDirectory.App;
+    return BaseDirectory.AppData;
   }
 
   async boot() {
-    const dir = this.getBaseDir();
-    const dirExist = await exists(CONFIG_DIR, { dir });
+    const baseDir = this.getBaseDir();
+    const dirExist = await exists(CONFIG_DIR, { baseDir });
     if (!dirExist) {
-      await createDir(CONFIG_DIR, { dir, recursive: true });
+      await mkdir(CONFIG_DIR, { baseDir, recursive: true });
     }
     // create file if not exist
-    const fileExist = await exists(`${CONFIG_DIR}/${PROXY_FILE_NAME}`, { dir });
+    const fileExist = await exists(`${CONFIG_DIR}/${PROXY_FILE_NAME}`, { baseDir });
     if (!fileExist) {
       await writeTextFile(
         `${CONFIG_DIR}/${PROXY_FILE_NAME}`,
         JSON.stringify([]),
         {
-          dir,
+          baseDir,
         }
       );
     }
