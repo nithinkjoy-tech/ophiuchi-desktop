@@ -21,9 +21,9 @@ import {
   QuestionMarkCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { invoke } from "@tauri-apps/api";
-import { message } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 import { appDataDir } from "@tauri-apps/api/path";
+import { message } from "@tauri-apps/plugin-dialog";
 import { Roboto_Mono } from "next/font/google";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import RequestPasswordModal from "../request-certificate-trust";
