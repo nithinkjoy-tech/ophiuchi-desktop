@@ -29,7 +29,7 @@ export async function m001_createGroupIfNotExists(mgrInstance: ProxyManager) {
       `${CONFIG_DIR}/${GROUP_FILE_NAME}`,
       JSON.stringify([defaultGroup]),
       {
-        dir,
+        baseDir,
       }
     );
   }

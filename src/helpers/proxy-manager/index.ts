@@ -14,7 +14,7 @@ import { m002_addProxyCreatedAt } from "./migration/002-add-proxy-created-at";
 let mgr: ProxyManager | undefined = undefined;
 
 export class ProxyManager implements IFileManagerBase {
-  constructor() {}
+  constructor() { }
 
   static sharedManager(): ProxyManager {
     if (!mgr) {
@@ -55,25 +55,25 @@ export class ProxyManager implements IFileManagerBase {
   }
 
   async getProxies() {
-    const dir = this.getBaseDir();
+    const baseDir = this.getBaseDir();
     const fileData = await readTextFile(`${CONFIG_DIR}/${PROXY_FILE_NAME}`, {
-      dir,
+      baseDir,
     });
     const endpointList = JSON.parse(fileData) as IProxyData[];
     return endpointList;
   }
 
   async getGroups() {
-    const dir = this.getBaseDir();
+    const baseDir = this.getBaseDir();
     const fileData = await readTextFile(`${CONFIG_DIR}/${GROUP_FILE_NAME}`, {
-      dir,
+      baseDir,
     });
     const groupList = JSON.parse(fileData) as IProxyGroupData[];
     return groupList;
   }
 
   async saveGroups(data: IProxyGroupData[]) {
-    const dir = this.getBaseDir();
+    const baseDir = this.getBaseDir();
 
     const cleaned: IProxyGroupData[] = data.map((d) => {
       const cleanedincludedHosts = d.includedHosts.map((p) => {
@@ -92,18 +92,18 @@ export class ProxyManager implements IFileManagerBase {
       `${CONFIG_DIR}/${GROUP_FILE_NAME}`,
       JSON.stringify(cleaned),
       {
-        dir,
+        baseDir,
       }
     );
   }
 
   async saveProxies(data: any) {
-    const dir = this.getBaseDir();
+    const baseDir = this.getBaseDir();
     await writeTextFile(
       `${CONFIG_DIR}/${PROXY_FILE_NAME}`,
       JSON.stringify(data),
       {
-        dir,
+        baseDir,
       }
     );
   }
