@@ -1,5 +1,5 @@
 {
-  "$schema": "./schemas/desktop-schema.json",
+  "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-capability",
   "description": "Capability for the main window",
   "windows": [
@@ -13,6 +13,7 @@
     "core:resources:default",
     "core:menu:default",
     "core:tray:default",
-    "core:window:allow-set-title"
+    "core:window:allow-set-title",
+    "sentry:default"
   ]
 }
