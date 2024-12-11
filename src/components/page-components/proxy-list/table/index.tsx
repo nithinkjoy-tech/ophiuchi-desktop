@@ -115,7 +115,7 @@ export default function ProxyListTable() {
         <>
           {" "}
           list of proxies in this group. <br />
-          Press start sontainer to start the docker webserver.
+          Press start Container to start the docker webserver.
         </>
       );
     }

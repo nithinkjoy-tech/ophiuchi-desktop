@@ -156,7 +156,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     filterGroup!.includedHosts.push(proxy.hostname);
     await mgr.saveGroups(_groupList);
     const filteredList = filterProxyFromGroup(_proxyList, filterGroup!);
-    set({ proxyList: filteredList });
+    set({ proxyList: filteredList, groupList: _groupList });
   },
   removeProxyFromGroup: async (proxy: IProxyData, group: IProxyGroupData) => {
     const mgr = ProxyManager.sharedManager();
@@ -169,7 +169,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     filterGroup!.includedHosts.splice(index, 1);
     await mgr.saveGroups(_groupList);
     const filteredList = filterProxyFromGroup(_proxyList, filterGroup!);
-    set({ proxyList: filteredList });
+    set({ proxyList: filteredList, groupList: _groupList });
   },
   setSelectedGroup: async (group: IProxyGroupData) => {
     const mgr = ProxyManager.sharedManager();

@@ -108,10 +108,10 @@ export function AppSidebar() {
               </SidebarMenuButton>
               <SidebarMenuSub className="py-1 grid gap-1">
                 {groupList.map((group) => {
-                  const isPage = pathname === "/";
+                  const isMainPage = pathname === "/";
                   return (
                     <SidebarMenuSubItem key={group.id}>
-                      <Link href={isPage ? "#" : "/"}>
+                      <Link href={isMainPage ? "#" : "/"}>
                         {/* Purposely used div here because SidebarMenuSubItem is an <a> component and it will produce an error. */}
                         <div
                           className={cn(
