@@ -25,7 +25,7 @@ function SettingsPage() {
     invoke("open_finder_or_explorer", {
       path: appDataDirPath,
     });
-  }, []);
+  }, [appDataDirPath]);
 
   return (
     <div className="">
