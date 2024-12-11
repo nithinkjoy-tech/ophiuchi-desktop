@@ -1,9 +1,8 @@
-import ProxyListComponent from "@/components/page-components/proxy-list";
 import dynamic from "next/dynamic";
 
 function EndpointListPage() {
   return (
-    <ProxyListComponent />
+    <p>This is a test page</p>
   );
 }
 

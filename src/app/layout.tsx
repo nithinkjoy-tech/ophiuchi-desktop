@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -29,7 +29,7 @@ export default function RootLayout({
           <SidebarProvider>
             <AppSidebar />
             <main className="w-full">
-              <SidebarTrigger />
+              {/* <SidebarTrigger /> */}
               {children}
             </main>
           </SidebarProvider>

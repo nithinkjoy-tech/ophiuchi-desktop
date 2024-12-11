@@ -1,5 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
+
+/* eslint-disable @next/next/no-img-element */
 
 import {
   Sidebar,
@@ -22,6 +23,7 @@ import {
   Settings,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import DiscordIcon from "./icons/discord";
 import { ModeToggle } from "./page-components/theme-toggle";
 
@@ -36,8 +38,8 @@ const appItems = [
     icon: () => <Home strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
   },
   {
-    title: "Inbox",
-    url: "#",
+    title: "Test",
+    url: "/test-page",
     icon: () => <Inbox strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
   },
   {
@@ -73,6 +75,8 @@ const helpItems = [
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -83,7 +87,7 @@ export function AppSidebar() {
         <SidebarGroupContent>
           <SidebarMenu>
             {appItems.map((item) => {
-              const isActive = item.url === window.location.pathname;
+              const isActive = item.url === pathname;
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive}>
@@ -101,10 +105,9 @@ export function AppSidebar() {
         <SidebarGroupContent>
           <SidebarMenu>
             {helpItems.map((item) => {
-              const isActive = item.url === window.location.pathname;
               return (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive}>
+                  <SidebarMenuButton asChild>
                     <Link
                       href={item.url}
                       target={item.isBlank ? "_blank" : "_self"}
