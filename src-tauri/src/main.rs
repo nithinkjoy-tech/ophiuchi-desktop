@@ -256,6 +256,9 @@ fn main() {
   let mut builder = tauri::Builder::default();
 
   if sentry_dsn.is_ok() {
+    // console output
+    println!("Sentry DSN found: {}", sentry_dsn.clone().unwrap());
+
     let client = sentry::init((
       sentry_dsn.unwrap(),
       sentry::ClientOptions {
@@ -269,6 +272,8 @@ fn main() {
     // Everything after here runs in only the app process
 
     builder = builder.plugin(tauri_plugin_sentry::init(&client));
+  } else {
+    println!("No Sentry DSN found.");
   }
 
   builder
