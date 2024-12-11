@@ -69,6 +69,7 @@
     {
       "identifier": "shell:allow-execute",
       "allow": []
-    }
+    },
+    "shell:allow-open"
   ]
 }
