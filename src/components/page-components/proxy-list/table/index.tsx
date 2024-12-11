@@ -269,7 +269,7 @@ export default function ProxyListTable() {
         <div className="text-right pt-2">
           <Dialog>
             <DialogTrigger asChild>
-              <Button type="button" variant={"ghost"} size="xs">
+              <Button type="button" variant={"ghost"} size="sm">
                 <span className="text-muted-foreground">Delete Group</span>
               </Button>
             </DialogTrigger>

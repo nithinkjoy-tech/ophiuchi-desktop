@@ -11,6 +11,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -23,12 +24,14 @@ import proxyListStore from "@/stores/proxy-list";
 import systemStatusStore from "@/stores/system-status";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import {
+  CheckCircle,
   CheckIcon,
   CircleAlert,
+  Computer,
   HelpCircle,
   List,
   LoaderCircle,
-  Settings,
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -39,9 +42,9 @@ import { Tooltip, TooltipContent } from "./ui/tooltip";
 // Menu items.
 const appItems = [
   // {
-  //   title: "Test",
+  //   title: "Status",
   //   url: "/test-page",
-  //   icon: () => <Inbox strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
+  //   icon: () => <Computer strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
   // },
   // {
   //   title: "Calendar",
@@ -165,6 +168,17 @@ export function AppSidebar() {
                   <AddProxyGroupDialog onDone={() => {}} />
                 </SidebarMenuSubItem>
               </SidebarMenuSub>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/status"}>
+                <Link href="/status">
+                  <Computer strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />
+                  <span>Status</span>
+                </Link>
+              </SidebarMenuButton>
+              <SidebarMenuBadge>
+                <CheckCircle size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />
+              </SidebarMenuBadge>
             </SidebarMenuItem>
             {appItems.map((item) => {
               const isActive = item.url === pathname;
