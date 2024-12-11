@@ -233,6 +233,22 @@ fn check_docker_installed() -> Result<bool, String> {
   }
 }
 
+#[tauri::command[rename_all = "snake_case"]]
+fn open_finder_or_explorer(path: String) -> Result<(), String> {
+  let output = Command::new("open").arg(path.clone()).output();
+
+  match output {
+    Ok(output) => {
+      if output.status.success() {
+        Ok(())
+      } else {
+        Err(format!("Failed to open path: {}", path))
+      }
+    }
+    Err(err) => Err(format!("Failed to execute command: {}", err)),
+  }
+}
+
 fn main() {
   dotenv().ok();
   let _ = fix_path_env::fix();
@@ -266,6 +282,7 @@ fn main() {
       remove_cert_from_keychain,
       add_line_to_hosts,
       delete_line_from_hosts,
+      open_finder_or_explorer,
       keychain_passwords::save_password,
       keychain_passwords::get_password,
       keychain_passwords::delete_password,

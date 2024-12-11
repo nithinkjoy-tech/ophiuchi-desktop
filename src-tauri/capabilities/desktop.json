@@ -14,9 +14,7 @@
     "fs:allow-app-meta-recursive",
     "fs:allow-app-read-recursive",
     "fs:allow-app-write-recursive",
-    "fs:allow-appdata-meta-recursive",
-    "fs:allow-appdata-read-recursive",
-    "fs:allow-appdata-write-recursive",
+    "fs:scope-appdata-recursive",
     {
       "identifier": "fs:scope",
       "allow": [
