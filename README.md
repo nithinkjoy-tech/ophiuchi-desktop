@@ -10,15 +10,19 @@
 
 Originally created by [@cheeselemon](https://github.com/cheeselemon)
 
-
 --- 
 
-## Related Websites about Ophiuchi Desktop
+## Related Links
+
+### Download the Built App: 
 
 [Website](https://www.ophiuchi.dev/)
 
+### Join Discord for Support:
+
 [Discord Channel](https://discord.gg/fpp8kNyPtz)
 
+---
 
 # Development
 
@@ -30,11 +34,14 @@ npm run tauri dev
 CI=true npm run tauri build 
 ```
 
-
 ### Release with debuggable build
 ```
 npm run tauri build -- --debug
 ```
+
+---
+# Troubleshooting 
+
 ## Resolving Tauri Build Error: "No such file or directory (os error 2)"
 
 The error you're encountering indicates that Tauri is trying to use Rust's Cargo build system, but it cannot find the necessary Rust setup to compile the project. This is likely because either Rust is not installed, or the environment isn’t configured properly for Tauri's Rust dependencies.
