@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={notoSans.className}>
         <ThemeProvider
           attribute="class"
@@ -31,10 +31,7 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <main className="w-full">
-              {/* <SidebarTrigger /> */}
-              {children}
-            </main>
+            <main className="w-full p-6 relative">{children}</main>
           </SidebarProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,15 @@
 import { Button } from "@/components/ui/button";
 import Code from "@/components/ui/code";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Table,
   TableBody,
   TableCaption,
@@ -36,6 +45,7 @@ export default function ProxyListTable() {
     selectedGroup,
     removeProxyFromList,
     removeProxyFromGroup,
+    deleteGroup,
   } = proxyListStore();
 
   const [loaded, setLoaded] = useState(false);
@@ -255,6 +265,38 @@ export default function ProxyListTable() {
           </div>
         </div>
       </div>
+      {selectedGroup?.isNoGroup ? null : (
+        <div className="text-right pt-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button type="button" variant={"ghost"} size="xs">
+                <span className="text-muted-foreground">Delete Group</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="">
+              <DialogHeader>
+                <DialogTitle>Delete Group</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this group?
+                </DialogDescription>
+              </DialogHeader>
+              <Code>{selectedGroup?.name}</Code>
+              <DialogFooter>
+                <Button
+                  variant={"destructive"}
+                  onClick={() => {
+                    if (selectedGroup) {
+                      deleteGroup(selectedGroup?.id);
+                    }
+                  }}
+                >
+                  Yes, delete.
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
     </>
   );
 }

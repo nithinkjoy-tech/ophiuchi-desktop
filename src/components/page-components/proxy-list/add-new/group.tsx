@@ -22,7 +22,7 @@ export function AddProxyGroupDialog({ onDone }: { onDone: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
+        <Button variant="ghost" size="xs" className="">
           <PlusIcon className="h-4 w-4" />
           Add Group
         </Button>

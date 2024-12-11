@@ -13,18 +13,23 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import proxyListStore from "@/stores/proxy-list";
 import {
   Calendar,
   HelpCircle,
-  Home,
   Inbox,
+  List,
   Search,
   Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DiscordIcon from "./icons/discord";
+import { AddProxyGroupDialog } from "./page-components/proxy-list/add-new/group";
 import { ModeToggle } from "./page-components/theme-toggle";
 
 const ICON_STROKE_WIDTH = 1.5;
@@ -32,11 +37,6 @@ const ICON_SIZE = 16;
 
 // Menu items.
 const appItems = [
-  {
-    title: "Home",
-    url: "/",
-    icon: () => <Home strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
-  },
   {
     title: "Test",
     url: "/test-page",
@@ -54,7 +54,7 @@ const appItems = [
   },
   {
     title: "Settings",
-    url: "#",
+    url: "/settings",
     icon: () => <Settings strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
   },
 ];
@@ -76,16 +76,53 @@ const helpItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { selectedGroup, groupList, setSelectedGroup } = proxyListStore();
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
+      {/* <div className="absolute top-2 -right-4">
+        <div className="bg-sidebar rounded border">
+          <SidebarTrigger />
+        </div>
+      </div> */}
       <SidebarHeader>
-        <img src="/app-icon.svg" className="w-8" alt="" />
+        <div className="flex gap-2 items-center px-1 pt-1">
+          <img src="/app-icon.svg" className="w-8" alt="" />
+          <p>Ophiuchi</p>
+        </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-2">
         <SidebarGroupLabel>Application</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/"}>
+                <Link href="/">
+                  <List strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />
+                  <span>Proxies</span>
+                </Link>
+              </SidebarMenuButton>
+              <SidebarMenuSub className="py-1">
+                {groupList.map((group) => {
+                  return (
+                    <SidebarMenuSubItem key={group.id}>
+                      <SidebarMenuSubButton
+                        className="cursor-pointer"
+                        isActive={
+                          selectedGroup?.id === group.id && pathname === "/"
+                        }
+                        onClick={() => setSelectedGroup(group)}
+                      >
+                        <span>{group.name}</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  );
+                })}
+                <SidebarMenuSubItem>
+                  <AddProxyGroupDialog onDone={() => {}} />
+                </SidebarMenuSubItem>
+              </SidebarMenuSub>
+            </SidebarMenuItem>
             {appItems.map((item) => {
               const isActive = item.url === pathname;
               return (

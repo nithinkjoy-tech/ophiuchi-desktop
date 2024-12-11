@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 
 function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="">
       <ProxyListComponent />
     </div>
   );

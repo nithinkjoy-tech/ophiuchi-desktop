@@ -166,7 +166,7 @@ export default function CreateProxyV2SideComponent({
             </div>
           </div>
         )} */}
-          <div className="fixed inset-0 overflow-hidden   bg-opacity-50 backdrop-blur-sm">
+          <div className="fixed inset-0 overflow-hidden bg-opacity-50 backdrop-blur-sm">
             <div className="absolute inset-0 overflow-hidden">
               <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
                 <Transition.Child
@@ -179,25 +179,25 @@ export default function CreateProxyV2SideComponent({
                   leaveTo="translate-x-full"
                 >
                   <Dialog.Panel className="pointer-events-auto w-screen max-w-full">
-                    <div className="flex h-full flex-col overflow-y-scroll   py-6 shadow-xl">
+                    <div className="flex h-full flex-col overflow-y-scroll bg-background py-6 shadow-xl">
                       <div className="px-4 sm:px-6">
                         <div className="flex items-start justify-between">
                           <Dialog.Title className="text-lg font-semibold leading-6  ">
                             Let's create a new proxy!
                           </Dialog.Title>
-                          <div className="ml-3 flex h-7 items-center">
-                            <button
-                              type="button"
-                              className="relative rounded-md bg-white   hover: focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                              onClick={() => resetAndClose()}
+                          <div className="ml-3 flex items-center">
+                            <Button
+                            variant={"ghost"}
+                            size={"sm"}
+                              onClick={() => {
+                                resetAndClose();
+                              }}
                             >
-                              <span className="absolute -inset-2.5" />
-                              <span className="sr-only">Close panel</span>
                               <XMarkIcon
                                 className="h-6 w-6"
                                 aria-hidden="true"
                               />
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -547,9 +547,7 @@ function CreateFormComponent({
             required={true}
             maxLength={64}
             className={cn(
-              hostnameExists
-                ? "border-red-500 text-red-400"
-                : "   ",
+              hostnameExists ? "border-red-500 text-red-400" : "   ",
               "p-2 bg-transparent border caret-gray-600 rounded-md text-5xl"
             )}
             placeholder="my.example.local"
