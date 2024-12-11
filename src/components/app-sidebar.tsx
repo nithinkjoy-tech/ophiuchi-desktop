@@ -36,7 +36,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DiscordIcon from "./icons/discord";
 import { AddProxyGroupDialog } from "./page-components/proxy-list/add-new/group";
-import { ModeToggle } from "./page-components/theme-toggle";
 import { Tooltip, TooltipContent } from "./ui/tooltip";
 
 // Menu items.
@@ -112,9 +111,7 @@ export function AppSidebar() {
                     />
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={12}>
-                    <p>
-                      Docker installation is not detected.
-                    </p>
+                    <p>Docker installation is not detected.</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -144,13 +141,20 @@ export function AppSidebar() {
                   return (
                     <SidebarMenuSubItem key={group.id}>
                       <SidebarMenuSubButton
-                        className="cursor-pointer"
+                        href="/"
+                        className="cursor-pointer flex justify-between items-center"
                         isActive={
                           selectedGroup?.id === group.id && pathname === "/"
                         }
                         onClick={() => setSelectedGroup(group)}
                       >
                         <span>{group.name}</span>
+                        {selectedGroup?.id === group.id && (
+                          <CheckIcon
+                            size={ICON_SIZE}
+                            className="text-muted-for"
+                          />
+                        )}
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   );
@@ -197,9 +201,7 @@ export function AppSidebar() {
         </SidebarGroupContent>
         <SidebarGroup />
       </SidebarContent>
-      <SidebarFooter>
-        <ModeToggle />
-      </SidebarFooter>
+      <SidebarFooter></SidebarFooter>
     </Sidebar>
   );
 }
