@@ -13,12 +13,12 @@ import { Separator } from "@/components/ui/separator";
 import { invoke } from "@tauri-apps/api/core";
 import { appDataDir } from "@tauri-apps/api/path";
 import dynamic from "next/dynamic";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 function SettingsPage() {
   const [appDataDirPath, setAppDataDirPath] = useState<string | null>(null);
 
-  useMemo(() => {
+  useEffect(() => {
     appDataDir().then(setAppDataDirPath);
   }, []);
 
@@ -27,6 +27,10 @@ function SettingsPage() {
       path: appDataDirPath,
     });
   }, [appDataDirPath]);
+
+  // if(!appDataDirPath) {
+  //   return null;
+  // }
 
   return (
     <div className="">
