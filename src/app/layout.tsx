@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { SystemSetupProvider } from "@/components/page-components/setup-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import type { Metadata } from "next";
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={notoSans.className}>
+        <SystemSetupProvider/>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

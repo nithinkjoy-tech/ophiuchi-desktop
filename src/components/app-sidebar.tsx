@@ -17,12 +17,18 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
 import proxyListStore from "@/stores/proxy-list";
+import systemStatusStore from "@/stores/system-status";
+import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import {
   Calendar,
+  CheckIcon,
+  CircleAlert,
   HelpCircle,
   Inbox,
   List,
+  LoaderCircle,
   Search,
   Settings,
 } from "lucide-react";
@@ -31,9 +37,7 @@ import { usePathname } from "next/navigation";
 import DiscordIcon from "./icons/discord";
 import { AddProxyGroupDialog } from "./page-components/proxy-list/add-new/group";
 import { ModeToggle } from "./page-components/theme-toggle";
-
-const ICON_STROKE_WIDTH = 1.5;
-const ICON_SIZE = 16;
+import { Tooltip, TooltipContent } from "./ui/tooltip";
 
 // Menu items.
 const appItems = [
@@ -76,6 +80,7 @@ const helpItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { isCheckDone, isDockerInstalled } = systemStatusStore();
   const { selectedGroup, groupList, setSelectedGroup } = proxyListStore();
 
   return (
@@ -89,6 +94,38 @@ export function AppSidebar() {
         <div className="flex gap-2 items-center px-1 pt-1">
           <img src="/app-icon.svg" className="w-8" alt="" />
           <p>Ophiuchi</p>
+          {isCheckDone ? (
+            <>
+              {isDockerInstalled ? (
+                <CheckIcon
+                  size={ICON_SIZE}
+                  strokeWidth={ICON_STROKE_WIDTH}
+                  className="text-blue-500"
+                />
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleAlert
+                      size={ICON_SIZE}
+                      strokeWidth={ICON_STROKE_WIDTH}
+                      className="text-red-400"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={12}>
+                    <p>
+                      Docker installation is not detected.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </>
+          ) : (
+            <LoaderCircle
+              className=" animate-spin text-muted-foreground"
+              size={ICON_SIZE}
+              strokeWidth={ICON_STROKE_WIDTH}
+            />
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
