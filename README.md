@@ -15,7 +15,7 @@
 
 ### Download the Built App: 
 
-🚀 [Ophiuchi Officil Website](https://www.ophiuchi.dev/)
+🚀 [Ophiuchi Official Website](https://www.ophiuchi.dev/)
 
 ### Join Discord for Support:
 
