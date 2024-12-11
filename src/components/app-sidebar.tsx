@@ -18,18 +18,16 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import proxyListStore from "@/stores/proxy-list";
 import systemStatusStore from "@/stores/system-status";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import {
-  Calendar,
   CheckIcon,
   CircleAlert,
   HelpCircle,
-  Inbox,
   List,
   LoaderCircle,
-  Search,
   Settings,
 } from "lucide-react";
 import Link from "next/link";
@@ -40,21 +38,21 @@ import { Tooltip, TooltipContent } from "./ui/tooltip";
 
 // Menu items.
 const appItems = [
-  {
-    title: "Test",
-    url: "/test-page",
-    icon: () => <Inbox strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: () => <Calendar strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: () => <Search strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
-  },
+  // {
+  //   title: "Test",
+  //   url: "/test-page",
+  //   icon: () => <Inbox strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
+  // },
+  // {
+  //   title: "Calendar",
+  //   url: "#",
+  //   icon: () => <Calendar strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
+  // },
+  // {
+  //   title: "Search",
+  //   url: "#",
+  //   icon: () => <Search strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
+  // },
   {
     title: "Settings",
     url: "/settings",
@@ -138,23 +136,27 @@ export function AppSidebar() {
               </SidebarMenuButton>
               <SidebarMenuSub className="py-1">
                 {groupList.map((group) => {
+                  const isPage = pathname === "/";
                   return (
                     <SidebarMenuSubItem key={group.id}>
                       <SidebarMenuSubButton
-                        href="/"
-                        className="cursor-pointer flex justify-between items-center"
-                        isActive={
-                          selectedGroup?.id === group.id && pathname === "/"
-                        }
+                        href={isPage ? "#" : "/"}
+                        className={cn(
+                          "cursor-pointer flex justify-between items-center",
+                          selectedGroup?.id === group.id && "underline"
+                        )}
+                        // isActive={
+                        //   selectedGroup?.id === group.id && pathname === "/"
+                        // }
                         onClick={() => setSelectedGroup(group)}
                       >
                         <span>{group.name}</span>
-                        {selectedGroup?.id === group.id && (
-                          <CheckIcon
-                            size={ICON_SIZE}
-                            className="text-muted-for"
-                          />
-                        )}
+                        {/* {selectedGroup?.id === group.id && (
+                            <CheckIcon
+                              size={ICON_SIZE}
+                              className="text-muted-for"
+                            />
+                          )} */}
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   );

@@ -4,18 +4,11 @@ import {
   TooltipProvider
 } from "@/components/ui/tooltip";
 import proxyListStore from "@/stores/proxy-list";
-import { appDataDir } from "@tauri-apps/api/path";
-import { open as shellOpen } from "@tauri-apps/plugin-shell";
-import { useCallback } from "react";
 import ProxyListTable from "./table";
 
 export default function ProxyListComponent() {
   const { proxyList } = proxyListStore();
 
-  const openAppData = useCallback(async () => {
-    const appDataDirPath = await appDataDir();
-    shellOpen(appDataDirPath);
-  }, []);
 
   return (
     <TooltipProvider delayDuration={0}>
