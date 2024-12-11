@@ -8,7 +8,6 @@
 
 
 
-Originally created by [@cheeselemon](https://github.com/cheeselemon)
 
 --- 
 
@@ -16,11 +15,11 @@ Originally created by [@cheeselemon](https://github.com/cheeselemon)
 
 ### Download the Built App: 
 
-[Website](https://www.ophiuchi.dev/)
+🚀 [Ophiuchi Officil Website](https://www.ophiuchi.dev/)
 
 ### Join Discord for Support:
 
-[Discord Channel](https://discord.gg/fpp8kNyPtz)
+💪 [Discord Channel](https://discord.gg/fpp8kNyPtz)
 
 ---
 
