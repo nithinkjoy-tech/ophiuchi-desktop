@@ -1,5 +1,6 @@
 "use client";
 
+import { ModeToggle } from "@/components/page-components/theme-toggle";
 import {
   Card,
   CardContent,
@@ -33,13 +34,13 @@ function SettingsPage() {
         <p>Settings</p>
       </div>
       <Separator />
-      <div className="p-4">
+      <div className="p-4 grid gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Generated Files</CardTitle>
             <CardDescription>
               Generated certificates, nginx configuration files are saved at
-              <br/>
+              <br />
               <Code>{appDataDirPath}</Code>
             </CardDescription>
           </CardHeader>
@@ -52,6 +53,17 @@ function SettingsPage() {
             >
               Show in Finder....
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Dark Mode</CardTitle>
+            <CardDescription>Toggle the dark mode!</CardDescription>
+          </CardHeader>
+          <CardContent className="">
+            <div className="p-1">
+              <ModeToggle />
+            </div>
           </CardContent>
         </Card>
       </div>
