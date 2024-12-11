@@ -29,7 +29,7 @@ import {
   HelpCircle,
   List,
   LoaderCircle,
-  Settings
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -79,7 +79,8 @@ const helpItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { isCheckDone, isDockerInstalled } = systemStatusStore();
-  const { selectedGroup, groupList, setSelectedGroup } = proxyListStore();
+  const { selectedGroup, groupList, setSelectedGroup, totalProxyList } =
+    proxyListStore();
 
   return (
     <Sidebar collapsible="icon">
@@ -105,29 +106,40 @@ export function AppSidebar() {
                   <span>Proxies</span>
                 </Link>
               </SidebarMenuButton>
-              <SidebarMenuSub className="py-1">
+              <SidebarMenuSub className="py-1 grid gap-1">
                 {groupList.map((group) => {
                   const isPage = pathname === "/";
                   return (
                     <SidebarMenuSubItem key={group.id}>
                       <Link href={isPage ? "#" : "/"}>
+                        {/* Purposely used div here because SidebarMenuSubItem is an <a> component and it will produce an error. */}
                         <div
                           className={cn(
-                            "cursor-pointer flex justify-between items-center",
-                            selectedGroup?.id === group.id && "underline"
+                            "cursor-pointer flex justify-between items-center text-xs"
                           )}
-                          // isActive={
-                          //   selectedGroup?.id === group.id && pathname === "/"
-                          // }
                           onClick={() => setSelectedGroup(group)}
                         >
-                          <span>{group.name}</span>
+                          <span
+                            className={cn(
+                              "text-xs",
+                              selectedGroup?.id === group.id && "underline"
+                            )}
+                          >
+                            {group.name}
+                          </span>
                           {/* {selectedGroup?.id === group.id && (
                             <CheckIcon
                               size={ICON_SIZE}
                               className="text-muted-for"
                             />
                           )} */}
+                          {!group.isNoGroup ? (
+                            <span className="text-xs">
+                              {group.includedHosts.length}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">{totalProxyList.length}</span>
+                          )}
                         </div>
                       </Link>
                     </SidebarMenuSubItem>
