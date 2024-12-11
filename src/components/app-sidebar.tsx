@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
@@ -25,7 +24,6 @@ import systemStatusStore from "@/stores/system-status";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import {
   CheckCircle,
-  CheckIcon,
   CircleAlert,
   Computer,
   HelpCircle,
@@ -94,36 +92,6 @@ export function AppSidebar() {
         <div className="flex gap-2 items-center px-1 pt-1">
           <img src="/app-icon.svg" className="w-8" alt="" />
           <p>Ophiuchi</p>
-          {isCheckDone ? (
-            <>
-              {isDockerInstalled ? (
-                <CheckIcon
-                  size={ICON_SIZE}
-                  strokeWidth={ICON_STROKE_WIDTH}
-                  className="text-blue-500"
-                />
-              ) : (
-                <Tooltip>
-                  <TooltipTrigger>
-                    <CircleAlert
-                      size={ICON_SIZE}
-                      strokeWidth={ICON_STROKE_WIDTH}
-                      className="text-red-400"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" sideOffset={12}>
-                    <p>Docker installation is not detected.</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </>
-          ) : (
-            <LoaderCircle
-              className=" animate-spin text-muted-foreground"
-              size={ICON_SIZE}
-              strokeWidth={ICON_STROKE_WIDTH}
-            />
-          )}
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
@@ -142,25 +110,26 @@ export function AppSidebar() {
                   const isPage = pathname === "/";
                   return (
                     <SidebarMenuSubItem key={group.id}>
-                      <SidebarMenuSubButton
-                        href={isPage ? "#" : "/"}
-                        className={cn(
-                          "cursor-pointer flex justify-between items-center",
-                          selectedGroup?.id === group.id && "underline"
-                        )}
-                        // isActive={
-                        //   selectedGroup?.id === group.id && pathname === "/"
-                        // }
-                        onClick={() => setSelectedGroup(group)}
-                      >
-                        <span>{group.name}</span>
-                        {/* {selectedGroup?.id === group.id && (
+                      <Link href={isPage ? "#" : "/"}>
+                        <div
+                          className={cn(
+                            "cursor-pointer flex justify-between items-center",
+                            selectedGroup?.id === group.id && "underline"
+                          )}
+                          // isActive={
+                          //   selectedGroup?.id === group.id && pathname === "/"
+                          // }
+                          onClick={() => setSelectedGroup(group)}
+                        >
+                          <span>{group.name}</span>
+                          {/* {selectedGroup?.id === group.id && (
                             <CheckIcon
                               size={ICON_SIZE}
                               className="text-muted-for"
                             />
                           )} */}
-                      </SidebarMenuSubButton>
+                        </div>
+                      </Link>
                     </SidebarMenuSubItem>
                   );
                 })}
@@ -177,7 +146,36 @@ export function AppSidebar() {
                 </Link>
               </SidebarMenuButton>
               <SidebarMenuBadge>
-                <CheckCircle size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />
+                {isCheckDone ? (
+                  <>
+                    {isDockerInstalled ? (
+                      <CheckCircle
+                        size={ICON_SIZE}
+                        strokeWidth={ICON_STROKE_WIDTH}
+                        className="text-blue-500"
+                      />
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <CircleAlert
+                            size={ICON_SIZE}
+                            strokeWidth={ICON_STROKE_WIDTH}
+                            className="text-red-400"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" sideOffset={12}>
+                          <p>Docker installation is not detected.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </>
+                ) : (
+                  <LoaderCircle
+                    className=" animate-spin text-muted-foreground"
+                    size={ICON_SIZE}
+                    strokeWidth={ICON_STROKE_WIDTH}
+                  />
+                )}
               </SidebarMenuBadge>
             </SidebarMenuItem>
             {appItems.map((item) => {
