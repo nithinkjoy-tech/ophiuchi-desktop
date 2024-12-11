@@ -29,12 +29,12 @@ export function EditGroupDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={"ghost"} size={"xs"} className="flex">
+        <Button variant={"outline"} size={"sm"} className="flex">
           Edit
         </Button>
         {/* <Button variant="outline" className="w-full">
           <PlusIcon className="h-4 w-4" />
-          Add Group
+          Create Group
         </Button> */}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -57,7 +57,7 @@ export function EditGroupDialog() {
             />
           </div>
         </div>
-        <DialogFooter className="flex w-full sm:justify-between items-center">
+        <DialogFooter className="flex w-full">
 
           <Button
             type="submit"
