@@ -56,6 +56,9 @@ export function SetupComponent() {
     await systemHelper.boot();
     if (await checkDocker()) {
       setCurrentJob("Loading complete! Click Start.");
+      invoke("close_splash", {
+        task: 'frontend',
+      });
     } else {
       setCurrentJob(
         "Docker not installed! Please install Docker and restart app."
@@ -75,21 +78,21 @@ export function SetupComponent() {
   const canProceed = showNext && dockerInstalled;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2 text-gray-100 bg-black">
+    <div className="flex flex-col items-center justify-center min-h-screen py-2  bg-black">
       <img src="/bg1.jpg" className="fixed inset-0 -z-0 opacity-50" alt="" />
       <div className="mx-auto max-w-sm w-full z-10">
         <div className="py-4 w-full text-center">
-          <h1 className="text-5xl font-bold tracking-tighter text-gray-100">
+          <h1 className="text-5xl font-bold tracking-tighter  ">
             Ophiuchi
-            <span className="text-xs text-gray-400 ml-3 font-light tracking-tight">
+            <span className="text-xs   ml-3 font-light tracking-tight">
               {pkg.version}
             </span>
           </h1>
-          <p className="text-gray-300 text-sm font-light mt-3">
+          <p className="  text-sm font-light mt-3">
             Localhost SSL Proxy Server Manager
           </p>
         </div>
-        <div className="rounded-xl bg-zinc-900 px-12 py-8 mt-8 w-full text-gray-300 text-sm min-h-[140px] flex items-center justify-center">
+        <div className="rounded-xl   px-12 py-8 mt-8 w-full   text-sm min-h-[140px] flex items-center justify-center">
           {currentJob}
         </div>
         <div className="mx-auto w-full flex">
@@ -101,7 +104,7 @@ export function SetupComponent() {
             )}
           >
             <Button
-              variant={"start"}
+              // variant={"start"}
               disabled={!canProceed}
               className="w-full gap-2 duration-500"
             >
@@ -109,9 +112,9 @@ export function SetupComponent() {
             </Button>
           </Link>
         </div>
-        <div className="text-xs bg-zinc-400 p-2 rounded-md mt-4">
-          <p className="font-medium text-gray-900">Alpha Notice & Disclaimer</p>
-          <p className="text-gray-800 mt-1">
+        <div className="text-xs  p-2 rounded-md mt-4">
+          <p className="font-medium  ">Alpha Notice & Disclaimer</p>
+          <p className="  mt-1">
             Please note that the app is in the alpha phase, thus features may be
             added or removed without notice as we gather feedback and make
             improvements to the app. <br />

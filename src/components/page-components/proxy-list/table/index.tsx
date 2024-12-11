@@ -1,18 +1,18 @@
 import { Button } from "@/components/ui/button";
 import Code from "@/components/ui/code";
 import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
@@ -131,7 +131,7 @@ export default function ProxyListTable() {
       <div className="px-6 border border-zinc-700 rounded-md py-6">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <Label className="font-medium leading-6 text-white">
+            <Label className="font-medium leading-6  ">
               {selectedGroup?.isNoGroup ? (
                 "Proxy List"
               ) : (

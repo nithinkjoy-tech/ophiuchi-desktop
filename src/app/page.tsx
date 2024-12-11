@@ -1,10 +1,10 @@
-import { SetupComponent } from "@/components/page-components/setup";
+import ProxyListComponent from "@/components/page-components/proxy-list";
 import dynamic from "next/dynamic";
 
 function Home() {
   return (
     <div className="min-h-screen">
-      <SetupComponent />
+      <ProxyListComponent />
     </div>
   );
 }
