@@ -7,30 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Code from "@/components/ui/code";
 import { Separator } from "@/components/ui/separator";
-import useDocker from "@/hooks/use-docker";
 import systemStatusStore from "@/stores/system-status";
-import { appDataDir } from "@tauri-apps/api/path";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
 
 function SettingsPage() {
-  const { isDockerInstalled } = systemStatusStore();
-  const [isDockerContainerRunning, setIsDockerContainerRunning] =
-    useState(false);
-  const { checkDockerContainerStatus } = useDocker();
-
-  const checkDockerContainerRunning = async () => {
-    const appDataDirPath = await appDataDir();
-    const dockerComposePath = `${appDataDirPath}/docker-compose.yml`;
-    checkDockerContainerStatus(dockerComposePath).then((status) => {
-      setIsDockerContainerRunning(status.isRunning);
-    });
-  };
-
-  useEffect(() => {
-    checkDockerContainerRunning();
-  }, []);
+  const { isDockerInstalled, isDockerContainerRunning, runningContainerInfo } =
+    systemStatusStore();
 
   return (
     <div className="">
@@ -41,7 +25,7 @@ function SettingsPage() {
       <div className="p-4 grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>Docker</CardTitle>
+            <CardTitle>Docker Intallation</CardTitle>
             <CardDescription>
               Docker is required to run the proxy server.
             </CardDescription>
@@ -55,10 +39,13 @@ function SettingsPage() {
               )}
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  Docker Installation
+                  {isDockerInstalled
+                    ? "Docker found on system."
+                    : "Docker is not found on system."}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {isDockerInstalled ? "Installed" : "Not installed"}
+                  A command <Code>docker --version</Code> is run to check if the
+                  Docker is installed.
                 </p>
               </div>
             </div>
@@ -67,7 +54,7 @@ function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Docker Container</CardTitle>
-            <CardDescription>Check if container is running.</CardDescription>
+            <CardDescription>Checks if container is running.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
@@ -78,11 +65,28 @@ function SettingsPage() {
               )}
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  Container Status
+                  {isDockerContainerRunning
+                    ? "Container is running."
+                    : "Container is not running."}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {isDockerContainerRunning ? "Running" : "Not Running"}
+                  A command <Code>docker compose</Code> is run periodically to
+                  check if the container is running.
                 </p>
+                <div className="text-sm text-muted-foreground">
+                  {isDockerContainerRunning && (
+                    <>
+                      <p>
+                        Project name:{" "}
+                        <Code>{runningContainerInfo?.Project}</Code>
+                      </p>
+                      <p>
+                        Container name:{" "}
+                        <Code>{runningContainerInfo?.Name}</Code>
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>

@@ -2,14 +2,44 @@
 "use client";
 
 import { SystemHelper } from "@/helpers/system";
+import useDocker from "@/hooks/use-docker";
 import proxyListStore from "@/stores/proxy-list";
 import systemStatusStore from "@/stores/system-status";
 // When using the Tauri API npm package:
 import { invoke } from "@tauri-apps/api/core";
+import { appDataDir } from "@tauri-apps/api/path";
 import { useCallback, useEffect } from "react";
+import { useInterval } from "usehooks-ts";
 
 export function SystemSetupProvider(props: any) {
-  const { setIsDockerInstalled, setIsCheckDone } = systemStatusStore();
+  const {
+    isDockerInstalled,
+    setIsDockerInstalled,
+    setIsCheckDone,
+    setIsDockerContainerRunning,
+  } = systemStatusStore();
+  const { checkDockerContainerStatus } = useDocker();
+
+  const checkDockerContainerRunning = async () => {
+    const appDataDirPath = await appDataDir();
+    const dockerComposePath = `${appDataDirPath}/docker-compose.yml`;
+    checkDockerContainerStatus(dockerComposePath).then((status) => {
+      setIsDockerContainerRunning(status.isRunning, status.containerInfo);
+    });
+  };
+
+  useInterval(
+    () => {
+      checkDockerContainerRunning();
+    },
+    
+    isDockerInstalled ? 3000 : null
+  );
+
+  useEffect(() => {
+    checkDockerContainerRunning();
+  }, []);
+
   const { load } = proxyListStore();
 
   async function checkDocker() {

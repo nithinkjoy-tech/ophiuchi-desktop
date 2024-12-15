@@ -1,26 +1,34 @@
 import { create } from "zustand";
 
+export interface IContainer {
+  State: string;
+  Name: string;
+  Project: string;
+}
+
 interface SystemStatusStore {
   isCheckDone: boolean;
   isDockerInstalled: boolean;
-  isDockerRunning: boolean;
+  isDockerContainerRunning: boolean;
+  runningContainerInfo: IContainer | null;
   isEverythingOk: () => boolean;
   setIsCheckDone: (checking: boolean) => void;
   setIsDockerInstalled: (installed: boolean) => void;
-  setIsDockerRunning: (running: boolean) => void;
+  setIsDockerContainerRunning: (running: boolean, containerInfo: IContainer | null) => void;
 }
 
 const systemStatusStore = create<SystemStatusStore>((set, get) => ({
   isCheckDone: false,
   isDockerInstalled: false,
-  isDockerRunning: false,
+  isDockerContainerRunning: false,
+  runningContainerInfo: null,
   isEverythingOk: () => {
     const { isCheckDone, isDockerInstalled } = get();
     return isCheckDone && isDockerInstalled;
   },
   setIsCheckDone: (checking) => set({ isCheckDone: checking }),
   setIsDockerInstalled: (installed) => set({ isDockerInstalled: installed }),
-  setIsDockerRunning: (running) => set({ isDockerRunning: running }),
+  setIsDockerContainerRunning: (running, containerInfo) => set({ isDockerContainerRunning: running, runningContainerInfo: containerInfo }),
 }));
 
 export default systemStatusStore;
