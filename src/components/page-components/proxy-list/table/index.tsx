@@ -34,13 +34,15 @@ import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { CheckIcon, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { AddProxyDialog } from "../../add-proxy";
+import AddCertificateToKeychainDialog from "../../certificate-dialogs/add-to-keychain";
 import GenerateCertificateDialog from "../../certificate-dialogs/generate";
 import { AddProxyToGroupDialog } from "../add-new/proxy-to-group";
 import { EditGroupDialog } from "../edit/group";
 import RequestPasswordModal from "../request-certificate-trust";
 
-function CertButton({ item }: { item: IProxyData }) {
+function CertButtons({ item }: { item: IProxyData }) {
   const [certExist, setCertExist] = useState<boolean | undefined>(undefined);
+  const [certExistsOnKeychain, setCertExistsOnKeychain] = useState(false);
 
   const openCert = useCallback(async (data: IProxyData) => {
     const appDataDirPath = await appDataDir();
@@ -54,8 +56,16 @@ function CertButton({ item }: { item: IProxyData }) {
     setCertExist(exists);
   }
 
+  async function checkExistOnKeychain(hostname: string) {
+    const exist = (await invoke("cert_exist_on_keychain", {
+      name: `${item.hostname}`,
+    })) as boolean;
+    setCertExistsOnKeychain(exist);
+  }
+
   useEffect(() => {
     checkExist(item.hostname);
+    checkExistOnKeychain(item.hostname);
   }, [item.hostname]);
 
   if (certExist === undefined) {
@@ -82,26 +92,34 @@ function CertButton({ item }: { item: IProxyData }) {
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant={"outline"}
-          size={"sm"}
-          onClick={() => {
-            openCert(item);
-          }}
-        >
-          <CheckIcon
-            className="text-green-500"
-            size={ICON_SIZE}
-            strokeWidth={ICON_STROKE_WIDTH}
-          />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="right">
-        <p>Show in Finder.</p>
-      </TooltipContent>
-    </Tooltip>
+    <div className="flex items-center gap-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={"outline"}
+            size={"sm"}
+            onClick={() => {
+              openCert(item);
+            }}
+          >
+            <CheckIcon
+              className="text-green-500"
+              size={ICON_SIZE}
+              strokeWidth={ICON_STROKE_WIDTH}
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="left">
+          <p>Show in Finder.</p>
+        </TooltipContent>
+      </Tooltip>
+      <AddCertificateToKeychainDialog
+        item={item}
+        onDone={() => {
+          checkExistOnKeychain(item.hostname);
+        }}
+      />
+    </div>
   );
 }
 
@@ -116,7 +134,6 @@ export default function ProxyListTable() {
   } = proxyListStore();
 
   const [loaded, setLoaded] = useState(false);
-  const [openSide, setOpenSide] = useState(false);
   const [currentEndpoint, setCurrentEndpoint] = useState<IProxyData>();
   const [passwordModalShown, setPasswordModalOpen] = useState(false);
 
@@ -143,12 +160,6 @@ export default function ProxyListTable() {
       name: `${endpoint.hostname}`,
     });
     setPasswordModalOpen(true);
-  }, []);
-
-  const openCert = useCallback(async (data: IProxyData) => {
-    const appDataDirPath = await appDataDir();
-    const certPath = `${appDataDirPath}/cert/${data.hostname}`;
-    shellOpen(certPath);
   }, []);
 
   const prepareConfigPage = useCallback(async () => {
@@ -274,7 +285,7 @@ export default function ProxyListTable() {
                         <TableCell>{proxyItem.port}</TableCell>
 
                         <TableCell>
-                          <CertButton item={proxyItem} />
+                          <CertButtons item={proxyItem} />
                         </TableCell>
 
                         <TableCell className="text-right">
