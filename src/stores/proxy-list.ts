@@ -14,7 +14,7 @@ interface ProxyListStore {
   load(): void;
   setProxyList: (proxyList: IProxyData[]) => void;
   removeProxyFromList: (proxy: IProxyData) => void;
-  addProxyItem: (data: IProxyData, group: IProxyGroupData) => void;
+  addProxyItem: (data: IProxyData, group?: IProxyGroupData) => void;
   addGroup: (groupName: string) => void;
   deleteGroup: (groupId: string) => void;
   updateGroup: (group: IProxyGroupData) => void;
@@ -121,7 +121,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     get().setSelectedGroup(_groupList[0]);
     await mgr.saveGroups(_groupList);
   },
-  addProxyItem: async (data: IProxyData, group: IProxyGroupData) => {
+  addProxyItem: async (data: IProxyData, group?: IProxyGroupData) => {
     const mgr = ProxyManager.sharedManager();
     const _proxyList = await mgr.getProxies();
     if (_proxyList.find((e: IProxyData) => e.hostname === data.hostname)) {

@@ -25,18 +25,85 @@ import {
 } from "@/components/ui/tooltip";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
-import { cn } from "@/lib/utils";
+import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
 import proxyListStore from "@/stores/proxy-list";
-import { PlusIcon } from "@heroicons/react/24/outline";
 import { Label } from "@radix-ui/react-label";
 import { invoke } from "@tauri-apps/api/core";
 import { appDataDir } from "@tauri-apps/api/path";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
+import { CheckIcon, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import CreateProxyV2SideComponent from "../add-new";
+import { AddProxyDialog } from "../../add-proxy";
+import GenerateCertificateDialog from "../../certificate-dialogs/generate";
 import { AddProxyToGroupDialog } from "../add-new/proxy-to-group";
 import { EditGroupDialog } from "../edit/group";
 import RequestPasswordModal from "../request-certificate-trust";
+
+function CertButton({ item }: { item: IProxyData }) {
+  const [certExist, setCertExist] = useState<boolean | undefined>(undefined);
+
+  const openCert = useCallback(async (data: IProxyData) => {
+    const appDataDirPath = await appDataDir();
+    const certPath = `${appDataDirPath}/cert/${data.hostname}`;
+    shellOpen(certPath);
+  }, []);
+
+  async function checkExist(hostname: string) {
+    const configHelper = CertificateManager.shared();
+    const exists = await configHelper.checkCertificateExists(hostname);
+    setCertExist(exists);
+  }
+
+  useEffect(() => {
+    checkExist(item.hostname);
+  }, [item.hostname]);
+
+  if (certExist === undefined) {
+    return (
+      <div>
+        <LoaderCircle
+          size={ICON_SIZE}
+          strokeWidth={ICON_STROKE_WIDTH}
+          className="animate-spin"
+        />
+      </div>
+    );
+  }
+
+  if (!certExist) {
+    return (
+      <GenerateCertificateDialog
+        item={item}
+        onDone={() => {
+          checkExist(item.hostname);
+        }}
+      />
+    );
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant={"outline"}
+          size={"sm"}
+          onClick={() => {
+            openCert(item);
+          }}
+        >
+          <CheckIcon
+            className="text-green-500"
+            size={ICON_SIZE}
+            strokeWidth={ICON_STROKE_WIDTH}
+          />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="right">
+        <p>Show in Finder.</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function ProxyListTable() {
   const {
@@ -123,7 +190,7 @@ export default function ProxyListTable() {
 
   return (
     <>
-      <CreateProxyV2SideComponent open={openSide} setOpen={setOpenSide} />
+      {/* <CreateProxyV2SideComponent open={openSide} setOpen={setOpenSide} /> */}
       <RequestPasswordModal
         description={"Ophiuchi wants to edit: /etc/hosts."}
         isOpen={passwordModalShown}
@@ -131,7 +198,7 @@ export default function ProxyListTable() {
           setPasswordModalOpen(false);
           if (!currentEndpoint) return;
           onDeleteFromHosts(currentEndpoint, password);
-          const configHelper = new CertificateManager();
+          const configHelper = CertificateManager.shared();
           configHelper.deleteCertificateFiles(currentEndpoint.hostname);
           configHelper.deleteNginxConfigurationFiles(currentEndpoint.hostname);
 
@@ -154,22 +221,14 @@ export default function ProxyListTable() {
               )}
             </Label>
           </div>
+
           <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
             {selectedGroup?.isNoGroup ? (
-              <Button
-                variant={"default"}
-                size="sm"
-                className={cn(
-                  "flex gap-2 items-center",
-                  proxyList.length === 0 ? "animate-bounce" : ""
-                )}
-                onClick={() => {
-                  setOpenSide(true);
+              <AddProxyDialog
+                onDone={() => {
+                  //
                 }}
-              >
-                <PlusIcon className="w-4 h-4" />
-                Create New Proxy
-              </Button>
+              />
             ) : (
               <AddProxyToGroupDialog
                 onDone={() => {
@@ -188,32 +247,38 @@ export default function ProxyListTable() {
                   <TableRow>
                     <TableHead className="w-[400px]">Hostname</TableHead>
                     <TableHead>Application Port</TableHead>
+                    <TableHead>Certificate</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {proxyList.map((proxyItem) => (
-                    <TableRow key={proxyItem.hostname}>
-                      <TableCell className="font-medium">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <a
-                              className="p-2 underline cursor-pointer text-sm sm:pl-0"
-                              href={`https://${proxyItem.hostname}`}
-                              target="_blank"
-                            >
-                              {proxyItem.hostname}
-                            </a>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">
-                            <p>Click to open on browser.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell>{proxyItem.port}</TableCell>
+                  {proxyList.map(async (proxyItem) => {
+                    return (
+                      <TableRow key={proxyItem.hostname}>
+                        <TableCell className="font-medium">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <a
+                                className="p-2 underline cursor-pointer text-sm sm:pl-0"
+                                href={`https://${proxyItem.hostname}`}
+                                target="_blank"
+                              >
+                                {proxyItem.hostname}
+                              </a>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              <p>Click to open on browser.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>{proxyItem.port}</TableCell>
 
-                      <TableCell className="text-right">
-                        {/* <p
+                        <TableCell>
+                          <CertButton item={proxyItem} />
+                        </TableCell>
+
+                        <TableCell className="text-right">
+                          {/* <p
                           onClick={() => {
                             openCert(proxyItem);
                           }}
@@ -221,44 +286,45 @@ export default function ProxyListTable() {
                         >
                           Locate Cert
                         </p> */}
-                        {selectedGroup?.isNoGroup ? (
-                          <Button
-                            size={"sm"}
-                            variant={"destructive"}
-                            onClick={() => {
-                              onDeleteEndpoint(proxyItem);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        ) : (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size={"sm"}
-                                variant={"ghost"}
-                                onClick={() => {
-                                  if (!selectedGroup) return;
-                                  removeProxyFromGroup(
-                                    proxyItem,
-                                    selectedGroup
-                                  );
-                                }}
-                              >
-                                Remove from Group
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">
-                              <p>
-                                Remove this proxy from the group{" "}
-                                <Code>{selectedGroup?.name}</Code>
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          {selectedGroup?.isNoGroup ? (
+                            <Button
+                              size={"sm"}
+                              variant={"destructive"}
+                              onClick={() => {
+                                onDeleteEndpoint(proxyItem);
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size={"sm"}
+                                  variant={"ghost"}
+                                  onClick={() => {
+                                    if (!selectedGroup) return;
+                                    removeProxyFromGroup(
+                                      proxyItem,
+                                      selectedGroup
+                                    );
+                                  }}
+                                >
+                                  Remove from Group
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="right">
+                                <p>
+                                  Remove this proxy from the group{" "}
+                                  <Code>{selectedGroup?.name}</Code>
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
