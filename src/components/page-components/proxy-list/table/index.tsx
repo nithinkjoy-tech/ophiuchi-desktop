@@ -1,3 +1,8 @@
+import { AddProxyDialog } from "@/components/page-components/add-proxy";
+import CertButtons from "@/components/page-components/certificate-dialogs/cert-buttons";
+import { AddProxyToGroupDialog } from "@/components/page-components/proxy-list/add-new/proxy-to-group";
+import { EditGroupDialog } from "@/components/page-components/proxy-list/edit/group";
+import RequestPasswordModal from "@/components/page-components/proxy-list/request-certificate-trust";
 import { Button } from "@/components/ui/button";
 import Code from "@/components/ui/code";
 import {
@@ -25,103 +30,10 @@ import {
 } from "@/components/ui/tooltip";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
-import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
 import proxyListStore from "@/stores/proxy-list";
 import { Label } from "@radix-ui/react-label";
 import { invoke } from "@tauri-apps/api/core";
-import { appDataDir } from "@tauri-apps/api/path";
-import { open as shellOpen } from "@tauri-apps/plugin-shell";
-import { CheckIcon, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { AddProxyDialog } from "../../add-proxy";
-import AddCertificateToKeychainDialog from "../../certificate-dialogs/add-to-keychain";
-import GenerateCertificateDialog from "../../certificate-dialogs/generate";
-import { AddProxyToGroupDialog } from "../add-new/proxy-to-group";
-import { EditGroupDialog } from "../edit/group";
-import RequestPasswordModal from "../request-certificate-trust";
-
-function CertButtons({ item }: { item: IProxyData }) {
-  const [certExist, setCertExist] = useState<boolean | undefined>(undefined);
-  const [certExistsOnKeychain, setCertExistsOnKeychain] = useState(false);
-
-  const openCert = useCallback(async (data: IProxyData) => {
-    const appDataDirPath = await appDataDir();
-    const certPath = `${appDataDirPath}/cert/${data.hostname}`;
-    shellOpen(certPath);
-  }, []);
-
-  async function checkExist(hostname: string) {
-    const configHelper = CertificateManager.shared();
-    const exists = await configHelper.checkCertificateExists(hostname);
-    setCertExist(exists);
-  }
-
-  async function checkExistOnKeychain(hostname: string) {
-    const exist = (await invoke("cert_exist_on_keychain", {
-      name: `${item.hostname}`,
-    })) as boolean;
-    setCertExistsOnKeychain(exist);
-  }
-
-  useEffect(() => {
-    checkExist(item.hostname);
-    checkExistOnKeychain(item.hostname);
-  }, [item.hostname]);
-
-  if (certExist === undefined) {
-    return (
-      <div>
-        <LoaderCircle
-          size={ICON_SIZE}
-          strokeWidth={ICON_STROKE_WIDTH}
-          className="animate-spin"
-        />
-      </div>
-    );
-  }
-
-  if (!certExist) {
-    return (
-      <GenerateCertificateDialog
-        item={item}
-        onDone={() => {
-          checkExist(item.hostname);
-        }}
-      />
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={"outline"}
-            size={"sm"}
-            onClick={() => {
-              openCert(item);
-            }}
-          >
-            <CheckIcon
-              className="text-green-500"
-              size={ICON_SIZE}
-              strokeWidth={ICON_STROKE_WIDTH}
-            />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <p>Show in Finder.</p>
-        </TooltipContent>
-      </Tooltip>
-      <AddCertificateToKeychainDialog
-        item={item}
-        onDone={() => {
-          checkExistOnKeychain(item.hostname);
-        }}
-      />
-    </div>
-  );
-}
 
 export default function ProxyListTable() {
   const {
