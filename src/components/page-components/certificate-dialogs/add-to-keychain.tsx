@@ -76,7 +76,8 @@ export default function AddCertificateToKeychainDialog({
   useEffect(() => {
     checkExist(item.hostname);
     checkExistOnKeychain(item.hostname);
-  }, [item.hostname]);
+    setCertAddedToKeychain(false);
+  }, [item.hostname, open]);
 
   function certificateActionButton() {
     if (!certExist) {
@@ -95,9 +96,9 @@ export default function AddCertificateToKeychainDialog({
         );
       }
       return (
-        <div className="">
+        <div className="grid gap-2">
           <Button size="sm" onClick={addCertToKeychain}>
-            Add to Keychain
+            {certExistsOnKeychain && "Re-"}Add to Keychain
           </Button>
           <p className="text-sm text-muted-foreground">or</p>
           <p className="text-sm text-muted-foreground">
@@ -137,24 +138,36 @@ export default function AddCertificateToKeychainDialog({
         <DialogHeader>
           <DialogTitle>Add Certificate to Keychain Access</DialogTitle>
           <DialogDescription>
-            Add the certificate to your keychain access.
+            This dialog will help you add the certificate to your keychain
+            access and then trust it, so that your browser can trust the
+            certificate.
           </DialogDescription>
         </DialogHeader>
         <div className="grid space-y-8">
           <div className="grid gap-4">
-            <Label>Add the certificate to your keychain access.</Label>
-            <div className="flex">{certificateActionButton()}</div>
+            <Label>
+              Click the button to add the certificate to your keychain access
+              and trust.
+            </Label>
+            {certExistsOnKeychain && (
+              <Label className="text-yellow-500">
+                Certificate already added to keychain access. This will remove
+                and re-add the certificate.
+              </Label>
+            )}
+            <div className="mt-4">{certificateActionButton()}</div>
           </div>
         </div>
         <DialogFooter>
           <Button
             type="submit"
+            variant={"secondary"}
             onClick={() => {
               setOpen(false);
               onDone();
             }}
           >
-            Done
+            Close
           </Button>
         </DialogFooter>
       </DialogContent>
