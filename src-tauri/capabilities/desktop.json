@@ -11,6 +11,7 @@
   ],
   "permissions": [
     "fs:default",
+    "fs:allow-watch",
     "fs:allow-app-meta-recursive",
     "fs:allow-app-read-recursive",
     "fs:allow-app-write-recursive",
