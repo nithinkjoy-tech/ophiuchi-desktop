@@ -28,7 +28,8 @@ security-framework = "2.11.0"
 syn = "=2.0.90" 
 dotenv = "0.15.0"
 time = "0.3.36"
-
+# 0.5.11 and later require Rust 1.81. see https://github.com/delta-io/delta-rs/issues/3065
+home = "=0.5.9"
 
 
 [dependencies.fix-path-env]
