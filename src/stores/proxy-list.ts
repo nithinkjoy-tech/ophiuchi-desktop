@@ -137,7 +137,6 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
 
     // // manipulate group
     // const _groupList = await mgr.getGroups();
-    // debugger;
     // const targetGroup = _groupList.find((el) => el.id === group.id);
 
     // targetGroup!.includedHosts.push(data.hostname);

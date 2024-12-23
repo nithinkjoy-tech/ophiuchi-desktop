@@ -72,7 +72,6 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
   );
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    debugger;
     const hostname = fixHostname(values.hostname);
     checkHostnameExists(hostname);
     if (hostnameExists) return;
