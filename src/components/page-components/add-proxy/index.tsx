@@ -129,7 +129,7 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                       />
                     </FormControl>
                     <FormDescription>
-                      Your local application's port number.
+                      Your local application&apos;s port number.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -142,8 +142,7 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                   <FormItem>
                     <FormLabel>Hostname:</FormLabel>
                     <FormControl>
-                      <Input placeholder={"my.app.local"}
-                      {...field} />
+                      <Input placeholder={"my.app.local"} {...field} />
                     </FormControl>
                     <FormDescription>
                       Any hostname you want to use.
