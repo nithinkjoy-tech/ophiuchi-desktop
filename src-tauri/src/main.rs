@@ -273,6 +273,22 @@ fn open_finder_or_explorer(path: String) -> Result<(), String> {
   }
 }
 
+#[tauri::command(rename_all = "snake_case")]
+fn check_host_exists(hostname: String) -> Result<bool, String> {
+    let line_to_check = format!("127.0.0.1 {}", hostname);
+    
+    match read_hosts_file() {
+        Ok(hosts_content) => {
+            let exists = hosts_content
+                .lines()
+                .filter(|line| !line.trim().starts_with('#'))
+                .any(|line| line.trim() == line_to_check.trim());
+            Ok(exists)
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 fn main() {
   dotenv().ok();
   let _ = fix_path_env::fix();
@@ -312,6 +328,7 @@ fn main() {
       cert_exist_on_keychain,
       add_line_to_hosts,
       delete_line_from_hosts,
+      check_host_exists,
       open_finder_or_explorer,
       keychain_passwords::save_password,
       keychain_passwords::get_password,

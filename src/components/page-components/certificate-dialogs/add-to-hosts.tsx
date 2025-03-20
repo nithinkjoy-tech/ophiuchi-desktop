@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import Code from "@/components/ui/code";
 import { CopyCommandButton } from "@/components/ui/copy-command-button";
 import {
   Dialog,
@@ -10,150 +9,135 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IProxyData } from "@/helpers/proxy-manager/interfaces";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { invoke } from "@tauri-apps/api/core";
-import { Globe, TriangleAlertIcon } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import { hostsStore } from "@/stores/hosts-store";
+import { Globe } from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface AddToHostsDialogProps {
+  hostname: string;
+  onClose: () => void;
+}
 
 export default function AddToHostsDialog({
-  item,
-  onDone,
-}: {
-  item: IProxyData;
-  onDone: () => void;
-}) {
+  hostname,
+  onClose,
+}: AddToHostsDialogProps) {
   const { toast } = useToast();
-  const [open, setOpen] = React.useState(false);
+  const { checkHostExists, addHostToFile, removeHostFromFile } = hostsStore();
+  const [loading, setLoading] = useState(false);
+  const [hostExists, setHostExists] = useState(false);
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [manualCommand, setManualCommand] = useState("");
+  const [open, setOpen] = useState(false);
 
-  const onAddToHosts = useCallback(
-    async (endpoint: IProxyData, password: string) => {
-      try {
-        setIsLoading(true);
-        await invoke("add_line_to_hosts", {
-          hostname: endpoint.hostname,
-          password: password,
-        });
-        setOpen(false);
-        onDone();
-        toast({
-          title: "Hosts Updated",
-          description: "Successfully added hostname to /etc/hosts",
-        });
-      } catch (error) {
-        console.error(error);
-        toast({
-          title: "Update Failed",
-          description: "Failed to add hostname to /etc/hosts",
-        });
-      } finally {
-        setIsLoading(false);
+  const checkExist = async () => {
+    try {
+      const exists = await checkHostExists(hostname);
+      setHostExists(exists);
+    } catch (e) {
+      console.error("Error checking host existence:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      checkExist();
+    }
+  }, [open]);
+
+  const onAddToHosts = async () => {
+    try {
+      setLoading(true);
+
+      if (hostExists) {
+        await removeHostFromFile(hostname, password);
       }
-    },
-    [onDone, toast]
-  );
+      await addHostToFile(hostname, password);
 
-  const generateManualCommand = useCallback(() => {
-    const command = `echo "127.0.0.1 ${item.hostname}" | sudo tee -a /etc/hosts`;
-    setManualCommand(command);
-  }, [item.hostname]);
+      toast({
+        title: "Success",
+        description: "Successfully added to /etc/hosts",
+      });
+      setOpen(false);
+      onClose();
+    } catch (e) {
+      console.error("Error adding to hosts:", e);
+      toast({
+        title: "Error",
+        description: "Failed to add to /etc/hosts",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(open: boolean) => {
-        setOpen(open);
-        if (!open) {
-          setPassword("");
-          setManualCommand("");
-        }
-        onDone();
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button variant="default" size="sm" className="">
-          <Globe className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <DialogTrigger asChild>
+          <TooltipTrigger asChild>
+            {!hostExists ? (
+              <Button variant="default" size="sm">
+                <Globe className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="text-green-500">
+                <Globe className="h-4 w-4" />
+              </Button>
+            )}
+          </TooltipTrigger>
+        </DialogTrigger>
+        <TooltipContent side="right">
+          <p>Add to /etc/hosts</p>
+        </TooltipContent>
+      </Tooltip>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add to /etc/hosts</DialogTitle>
           <DialogDescription>
-            This dialog will help you add the hostname to your <Code>/etc/hosts</Code> file.
-            This is required for the browser to resolve the hostname to localhost.
+            Add the following line to your /etc/hosts file:
           </DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="auto" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="auto">Automatic</TabsTrigger>
-            <TabsTrigger value="manual">Manual</TabsTrigger>
-          </TabsList>
-          <TabsContent value="auto">
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <div className="flex items-start gap-2">
-                  <div className="mt-1">
-                    <TriangleAlertIcon className="h-5 w-5 text-yellow-500" />
-                  </div>
-                  <Label>
-                    To add <Code>{item.hostname}</Code> to your <Code>/etc/hosts</Code> file,
-                    please enter your machine&apos;s password.
-                    <br />
-                    <span className="text-red-500 text-sm">
-                      Note: Password is never saved.
-                    </span>
-                  </Label>
-                </div>
-                <div className="mt-2">
-                  <input
-                    type="password"
-                    name="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full rounded-md border-0 py-1.5 px-1.5 shadow-sm ring-1 ring-inset ring-gray-300 placeholder: focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    placeholder="Enter your password"
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="default"
-                onClick={() => {
-                  onAddToHosts(item, password);
-                }}
-                disabled={!password || isLoading}
-              >
-                {isLoading ? "Adding..." : "Add"}
-              </Button>
-            </DialogFooter>
-          </TabsContent>
-          <TabsContent value="manual" className="py-4">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <TriangleAlertIcon className="h-5 w-5 text-yellow-500" />
-                <p className="text-base text-muted-foreground">
-                  If you prefer to add the hostname manually, you can use the following command:
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Code className="text-sm whitespace-pre-wrap break-all max-w-full overflow-x-auto p-4">
-                  {manualCommand || `echo "127.0.0.1 ${item.hostname}" | sudo tee -a /etc/hosts`}
-                </Code>
-                <div className="grid gap-2">
-                  <CopyCommandButton command={manualCommand || `echo "127.0.0.1 ${item.hostname}" | sudo tee -a /etc/hosts`} />
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="grid gap-4 py-4">
+          <CopyCommandButton
+            command={`127.0.0.1 ${hostname}`}
+            className="w-full"
+          />
+          {hostExists && (
+            <p className="text-sm text-yellow-500">
+              ⚠️ This hostname already exists in /etc/hosts. Re-adding will
+              update it.
+            </p>
+          )}
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <Button
+            type="submit"
+            onClick={onAddToHosts}
+            disabled={loading || !password}
+            variant={hostExists ? "secondary" : "default"}
+          >
+            {loading
+              ? "Adding..."
+              : hostExists
+              ? "Re-add to hosts"
+              : "Add to hosts"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-} 
+}

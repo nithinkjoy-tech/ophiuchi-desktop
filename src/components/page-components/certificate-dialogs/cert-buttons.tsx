@@ -1,5 +1,6 @@
 "use client";
 
+import AddToHostsDialog from "@/components/page-components/certificate-dialogs/add-to-hosts";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -14,7 +15,6 @@ import { appDataDir } from "@tauri-apps/api/path";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { CheckIcon, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import AddToHostsDialog from "./add-to-hosts";
 import AddCertificateToKeychainDialog from "./add-to-keychain";
 import GenerateCertificateDialog from "./generate";
 
@@ -37,7 +37,6 @@ export default function PrepareButtons({ item }: { item: IProxyData }) {
   useEffect(() => {
     checkExist(item.hostname);
   }, [item.hostname]);
-
 
   if (certExist === undefined) {
     return (
@@ -87,13 +86,13 @@ export default function PrepareButtons({ item }: { item: IProxyData }) {
       <AddCertificateToKeychainDialog
         item={item}
         onDone={() => {
-          // 
+          //
         }}
       />
       <AddToHostsDialog
-        item={item}
-        onDone={() => {
-          // 
+        hostname={item.hostname}
+        onClose={() => {
+          //
         }}
       />
     </div>

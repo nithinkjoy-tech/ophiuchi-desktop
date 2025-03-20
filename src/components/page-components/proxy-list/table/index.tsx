@@ -176,7 +176,7 @@ export default function ProxyListTable() {
                   <TableRow>
                     <TableHead className="w-[400px]">Hostname</TableHead>
                     <TableHead>Application Port</TableHead>
-                    <TableHead>Certificate</TableHead>
+                    <TableHead>Prepare</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>

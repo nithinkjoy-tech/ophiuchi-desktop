@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { useToast } from "@/hooks/use-toast";
@@ -116,24 +117,25 @@ export default function AddCertificateToKeychainDialog({
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(open: boolean) => {
-        setOpen(open);
-        onDone();
-      }}
-    >
-      <DialogTrigger asChild>
-        {!certExistsOnKeychain ? (
-          <Button variant="default" size="sm" className="">
-            <KeyRound className="h-4 w-4" />
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="text-green-500">
-            <KeyRound className="h-4 w-4" />
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <DialogTrigger asChild>
+          <TooltipTrigger asChild>
+            {!certExistsOnKeychain ? (
+              <Button variant="default" size="sm" className="">
+                <KeyRound className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="text-green-500">
+                <KeyRound className="h-4 w-4" />
+              </Button>
+            )}
+          </TooltipTrigger>
+        </DialogTrigger>
+        <TooltipContent side="top">
+          <p>Add certificate to keychain.</p>
+        </TooltipContent>
+      </Tooltip>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
