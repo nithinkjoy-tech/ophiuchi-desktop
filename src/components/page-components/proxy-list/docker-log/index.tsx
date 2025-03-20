@@ -77,8 +77,8 @@ export default function DockerLogModal({
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={closeModal}>Close</Button>
             <Button
+              variant={"outline"}
               onClick={async () => {
                 const command = Command.create("open-docker-app");
                 const output = await command.execute();
@@ -86,6 +86,9 @@ export default function DockerLogModal({
               }}
             >
               Open Docker Desktop
+            </Button>
+            <Button variant={"secondary"} onClick={closeModal}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
