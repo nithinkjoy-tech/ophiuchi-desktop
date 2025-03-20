@@ -2,6 +2,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SystemSetupProvider } from "@/components/page-components/setup-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default function RootLayout({
             <AppSidebar />
             <main className="w-full p-6 relative">{children}</main>
           </SidebarProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
