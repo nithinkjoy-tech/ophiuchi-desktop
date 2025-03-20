@@ -1,4 +1,8 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
+import Code from "@/components/ui/code";
+import { CopyCommandButton } from "@/components/ui/copy-command-button";
 import {
   Dialog,
   DialogContent,
@@ -9,12 +13,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
-import { invoke } from "@tauri-apps/api/core";
-import { appDataDir } from "@tauri-apps/api/path";
-import { KeyRound } from "lucide-react";
-import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { certKeychainStore } from "@/stores/cert-keychain-store";
+import { KeyRound, Triangle } from "lucide-react";
 import React, { useCallback, useEffect } from "react";
 
 export default function AddCertificateToKeychainDialog({
@@ -24,59 +28,65 @@ export default function AddCertificateToKeychainDialog({
   item: IProxyData;
   onDone: () => void;
 }) {
+  const { toast } = useToast();
   const [open, setOpen] = React.useState(false);
   const [certExist, setCertExist] = React.useState(false);
   const [certAddedToKeychain, setCertAddedToKeychain] = React.useState(false);
+  const [manualCommand, setManualCommand] = React.useState("");
   const [certExistsOnKeychain, setCertExistsOnKeychain] = React.useState(false);
+  const {
+    certOnKeychain,
+    checkCertExistOnKeychain,
+    addCertToKeychain,
+    removeCertFromKeychain,
+    generateManualCommand,
+  } = certKeychainStore();
 
   async function checkExist(hostname: string) {
     const certMgr = CertificateManager.shared();
     const exists = await certMgr.checkCertificateExists(hostname);
     setCertExist(exists);
-    checkExistOnKeychain(hostname);
   }
 
-  async function checkExistOnKeychain(hostname: string) {
-    const exist = (await invoke("cert_exist_on_keychain", {
-      name: `${item.hostname}`,
-    })) as boolean;
-    setCertExistsOnKeychain(exist);
-  }
-
-  const addCertToKeychain = useCallback(async () => {
+  const onAddCertToKeychain = useCallback(async () => {
     if (!item) return;
     try {
-      const appDataDirPath = await appDataDir();
-      const pemFilePath = `${appDataDirPath}/cert/${item.hostname}/cert.pem`;
-      // support for whitespaces in path
-      // const whiteSpaced = pemFilePath.replace(/ /g, "\\ ");
-      const certExistsOnKeychain = await invoke("cert_exist_on_keychain", {
-        name: `${item.hostname}`,
-      });
-      if (certExistsOnKeychain) {
-        await invoke("remove_cert_from_keychain", {
-          name: `${item.hostname}`,
-        });
+      const exist = await checkCertExistOnKeychain(item.hostname, true);
+      if (exist) {
+        await removeCertFromKeychain(item.hostname);
       }
 
-      await invoke("add_cert_to_keychain", {
-        pem_file_path: `${pemFilePath}`,
-      });
-
-      const _exists = (await invoke("cert_exist_on_keychain", {
-        name: `${item.hostname}`,
-      })) as boolean;
+      await addCertToKeychain(item.hostname);
       setCertAddedToKeychain(true);
-      setCertExistsOnKeychain(_exists);
+      await checkCertExistOnKeychain(item.hostname, true);
+      toast({
+        title: "Certificate Added",
+        description: "Certificate has been added to keychain successfully",
+      });
     } catch (e) {
       console.error(e);
+      toast({
+        title: "Certificate Error",
+        description: "Failed to add certificate to keychain",
+      });
     }
-  }, [item]);
+  }, [
+    addCertToKeychain,
+    checkCertExistOnKeychain,
+    item,
+    removeCertFromKeychain,
+    toast,
+  ]);
 
   useEffect(() => {
     checkExist(item.hostname);
-    checkExistOnKeychain(item.hostname);
+    checkCertExistOnKeychain(item.hostname).then((exists) => {
+      setCertExistsOnKeychain(exists);
+    });
     setCertAddedToKeychain(false);
+    generateManualCommand(item.hostname).then((cmd) => {
+      setManualCommand(cmd);
+    });
   }, [item.hostname, open]);
 
   function certificateActionButton() {
@@ -97,19 +107,9 @@ export default function AddCertificateToKeychainDialog({
       }
       return (
         <div className="grid gap-2">
-          <Button size="sm" onClick={addCertToKeychain}>
+          <Button size="sm" onClick={onAddCertToKeychain}>
             {certExistsOnKeychain && "Re-"}Add to Keychain
           </Button>
-          <p className="text-sm text-muted-foreground">or</p>
-          <p className="text-sm text-muted-foreground">
-            <Link
-              className="underline text-foreground"
-              href="https://google.com"
-            >
-              See instructions
-            </Link>{" "}
-            on how to add and trust the certificate to your keychain manually.
-          </p>
         </div>
       );
     }
@@ -129,34 +129,61 @@ export default function AddCertificateToKeychainDialog({
             <KeyRound className="h-4 w-4" />
           </Button>
         ) : (
-          <Button variant="secondary" size="sm" className="">
+          <Button variant="outline" size="sm" className="text-green-500">
             <KeyRound className="h-4 w-4" />
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add Certificate to Keychain Access</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Triangle className="h-5 w-5 text-primary" />
+            Add Certificate to Keychain Access
+          </DialogTitle>
           <DialogDescription>
             This dialog will help you add the certificate to your keychain
             access and then trust it, so that your browser can trust the
             certificate.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid space-y-8">
-          <div className="grid gap-4">
-            <Label>
-              Click the button to add the certificate to your keychain access
-              and trust.
-            </Label>
-            {certExistsOnKeychain && (
-              <Label className="text-yellow-500">
-                Certificate already added to keychain access. This will remove
-                and re-add the certificate.
-              </Label>
-            )}
-            <div className="mt-4">{certificateActionButton()}</div>
-          </div>
+        <div className="w-full">
+          <Tabs defaultValue="auto" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="auto">Auto</TabsTrigger>
+              <TabsTrigger value="manual">Manual</TabsTrigger>
+            </TabsList>
+            <TabsContent value="auto" className="py-4">
+              <div className="grid gap-4">
+                <Label className="text-base">
+                  Click the button to add the certificate to your keychain
+                  access and trust.
+                </Label>
+                {certExistsOnKeychain && (
+                  <Label className="text-yellow-500 text-base">
+                    Note: Certificate already added to keychain access. <br />
+                    This will remove and re-add the certificate.
+                  </Label>
+                )}
+                <div className="mt-4">{certificateActionButton()}</div>
+              </div>
+            </TabsContent>
+            <TabsContent value="manual" className="py-4">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Triangle className="h-5 w-5 text-yellow-500" />
+                  <p className="text-base text-muted-foreground">
+                    If you prefer to add the certificate manually, you can use the following command:
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Code className="text-sm whitespace-pre-wrap break-all max-w-full overflow-x-auto p-4">{manualCommand}</Code>
+                  <div className="grid gap-2">
+                    <CopyCommandButton command={manualCommand} />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
         <DialogFooter>
           <Button

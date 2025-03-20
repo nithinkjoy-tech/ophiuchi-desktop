@@ -9,11 +9,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
+import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
 import { invoke } from "@tauri-apps/api/core";
 import { appDataDir } from "@tauri-apps/api/path";
-import { PlusIcon } from "lucide-react";
+import { CheckIcon, PlusIcon } from "lucide-react";
 import React, { useEffect } from "react";
 
 export default function GenerateCertificateDialog({
@@ -62,30 +64,45 @@ export default function GenerateCertificateDialog({
         <DialogHeader>
           <DialogTitle>Generate Certificate</DialogTitle>
           <DialogDescription>
-            Generate new certificate for this proxy.
+            Generate new certificate to use this proxy.
           </DialogDescription>
         </DialogHeader>
         <div className="grid space-y-8">
           <div className="grid gap-4">
             <Label>
-              Generate a new certificate for <strong>{item.hostname}</strong>
+              Clicking the Generate Certificate will create a new self-signed
+              certificate for <strong>{item.hostname}</strong>.
             </Label>
             <div className="flex">
               {certExist ? (
                 <div className="">
-                  <Button size="sm" variant="secondary" disabled={true}>
-                    Done
-                  </Button>
-                  <p
-                    className="underline cursor-pointer text-muted-foreground text-sm pt-2"
-                    onClick={async () => {
-                      const appDataDirPath = await appDataDir();
-                      invoke("open_finder_or_explorer", {
-                        path: `${appDataDirPath}/cert/${item.hostname}`,
-                      });
-                    }}
-                  >
-                    Locate on Finder...
+                  <div className="flex items-center gap-4">
+                    <Button size="sm" variant="secondary" disabled={true}>
+                      Done
+                    </Button>
+                    <p
+                      className="underline cursor-pointer text-muted-foreground text-sm"
+                      onClick={async () => {
+                        const appDataDirPath = await appDataDir();
+                        invoke("open_finder_or_explorer", {
+                          path: `${appDataDirPath}/cert/${item.hostname}`,
+                        });
+                      }}
+                    >
+                      Locate on Finder...
+                    </p>
+                  </div>
+                  <Separator className="mt-4" />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Tip: You can locate them later by pressing the
+                    <Button variant={"outline"} size={"sm"} className="mx-2">
+                      <CheckIcon
+                        className="text-green-500"
+                        size={ICON_SIZE}
+                        strokeWidth={ICON_STROKE_WIDTH}
+                      />
+                    </Button>
+                    button at the proxy list.
                   </p>
                 </div>
               ) : (

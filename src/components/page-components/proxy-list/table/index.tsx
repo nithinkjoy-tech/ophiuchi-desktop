@@ -1,5 +1,5 @@
 import { AddProxyDialog } from "@/components/page-components/add-proxy";
-import CertButtons from "@/components/page-components/certificate-dialogs/cert-buttons";
+import PrepareButtons from "@/components/page-components/certificate-dialogs/cert-buttons";
 import { AddProxyToGroupDialog } from "@/components/page-components/proxy-list/add-new/proxy-to-group";
 import { EditGroupDialog } from "@/components/page-components/proxy-list/edit/group";
 import RequestPasswordModal from "@/components/page-components/proxy-list/request-certificate-trust";
@@ -34,6 +34,7 @@ import proxyListStore from "@/stores/proxy-list";
 import { Label } from "@radix-ui/react-label";
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
+import DockerControl from "../../docker-control";
 
 export default function ProxyListTable() {
   const {
@@ -146,19 +147,24 @@ export default function ProxyListTable() {
           </div>
 
           <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-            {selectedGroup?.isNoGroup ? (
-              <AddProxyDialog
-                onDone={() => {
-                  //
-                }}
-              />
-            ) : (
-              <AddProxyToGroupDialog
-                onDone={() => {
-                  //
-                }}
-              />
-            )}
+            <div className="flex gap-2 items-center">
+              {selectedGroup?.isNoGroup ? (
+                <AddProxyDialog
+                  onDone={() => {
+                    //
+                  }}
+                />
+              ) : (
+                <>
+                  <DockerControl />
+                  <AddProxyToGroupDialog
+                    onDone={() => {
+                      //
+                    }}
+                  />
+                </>
+              )}
+            </div>
           </div>
         </div>
         <div className="mt-8 flow-root">
@@ -197,7 +203,7 @@ export default function ProxyListTable() {
                         <TableCell>{proxyItem.port}</TableCell>
 
                         <TableCell>
-                          <CertButtons item={proxyItem} />
+                          <PrepareButtons item={proxyItem} />
                         </TableCell>
 
                         <TableCell className="text-right">

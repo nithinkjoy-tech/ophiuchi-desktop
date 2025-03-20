@@ -3,6 +3,7 @@
 
 import { SystemHelper } from "@/helpers/system";
 import useDocker from "@/hooks/use-docker";
+import { certKeychainStore } from "@/stores/cert-keychain-store";
 import proxyListStore from "@/stores/proxy-list";
 import systemStatusStore from "@/stores/system-status";
 // When using the Tauri API npm package:
@@ -18,7 +19,9 @@ export function SystemSetupProvider(props: any) {
     setIsCheckDone,
     setIsDockerContainerRunning,
   } = systemStatusStore();
+  const { init: initCertKeychainStore } = certKeychainStore();
   const { checkDockerContainerStatus } = useDocker();
+  const { load } = proxyListStore();
 
   const checkDockerContainerRunning = async () => {
     const appDataDirPath = await appDataDir();
@@ -32,15 +35,14 @@ export function SystemSetupProvider(props: any) {
     () => {
       checkDockerContainerRunning();
     },
-    
+
     isDockerInstalled ? 3000 : null
   );
 
   useEffect(() => {
+    initCertKeychainStore();
     checkDockerContainerRunning();
   }, []);
-
-  const { load } = proxyListStore();
 
   async function checkDocker() {
     try {

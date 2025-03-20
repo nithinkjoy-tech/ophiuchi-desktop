@@ -9,16 +9,18 @@ import {
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
-import { invoke } from "@tauri-apps/api/core";
+import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { appDataDir } from "@tauri-apps/api/path";
+import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { CheckIcon, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import AddToHostsDialog from "./add-to-hosts";
 import AddCertificateToKeychainDialog from "./add-to-keychain";
 import GenerateCertificateDialog from "./generate";
 
-export default function CertButtons({ item }: { item: IProxyData }) {
+export default function PrepareButtons({ item }: { item: IProxyData }) {
   const [certExist, setCertExist] = useState<boolean | undefined>(undefined);
-  const [certExistsOnKeychain, setCertExistsOnKeychain] = useState(false);
+  const { certOnKeychain } = certKeychainStore();
 
   const openCert = useCallback(async (data: IProxyData) => {
     const appDataDirPath = await appDataDir();
@@ -32,17 +34,10 @@ export default function CertButtons({ item }: { item: IProxyData }) {
     setCertExist(exists);
   }
 
-  async function checkExistOnKeychain(hostname: string) {
-    const exist = (await invoke("cert_exist_on_keychain", {
-      name: `${item.hostname}`,
-    })) as boolean;
-    setCertExistsOnKeychain(exist);
-  }
-
   useEffect(() => {
     checkExist(item.hostname);
-    checkExistOnKeychain(item.hostname);
   }, [item.hostname]);
+
 
   if (certExist === undefined) {
     return (
@@ -92,12 +87,15 @@ export default function CertButtons({ item }: { item: IProxyData }) {
       <AddCertificateToKeychainDialog
         item={item}
         onDone={() => {
-          checkExistOnKeychain(item.hostname);
+          // 
+        }}
+      />
+      <AddToHostsDialog
+        item={item}
+        onDone={() => {
+          // 
         }}
       />
     </div>
   );
-}
-function shellOpen(certPath: string) {
-  throw new Error("Function not implemented.");
 }
