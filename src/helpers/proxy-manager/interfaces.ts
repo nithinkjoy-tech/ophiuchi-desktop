@@ -8,7 +8,7 @@ export type IProxyData = {
 export type IProxyGroupData = {
   id: string;
   name: string;
-  isNoGroup: boolean;
+  isNoGroup: boolean; // true if this is the default group
   includedHosts: (string | IProxyData)[];
   createdAt: string;
   updatedAt: string;

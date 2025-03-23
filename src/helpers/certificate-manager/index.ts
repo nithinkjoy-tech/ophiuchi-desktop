@@ -1,4 +1,4 @@
-import { resolveResource } from "@tauri-apps/api/path";
+import { appDataDir, resolveResource } from "@tauri-apps/api/path";
 import {
   BaseDirectory,
   exists,
@@ -12,11 +12,17 @@ import * as selfsigned from "selfsigned";
 let instance: CertificateManager | null = null;
 
 export class CertificateManager {
+  private appDataDir: string = "";
+
   async deleteCertificateFiles(hostname: string) {
     await remove(`cert/${hostname}`, {
       baseDir: BaseDirectory.AppData,
       recursive: true,
     });
+  }
+
+  getManualCommandToDeleteCertificate(hostname: string) {
+    return `rm -rf "${this.appDataDir}/cert/${hostname}"`;
   }
 
   async deleteAllNginxConfigurationFiles() {
@@ -95,6 +101,11 @@ export class CertificateManager {
   }
   constructor() {
     // init
+    this.init();
+  }
+
+  async init() {
+    this.appDataDir = await appDataDir();
   }
 
   public static shared(): CertificateManager {

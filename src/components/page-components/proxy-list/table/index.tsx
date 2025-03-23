@@ -3,7 +3,6 @@ import PrepareButtons from "@/components/page-components/certificate-dialogs/cer
 import { AddProxyToGroupDialog } from "@/components/page-components/proxy-list/add-new/proxy-to-group";
 import { DeleteProxyDialog } from "@/components/page-components/proxy-list/delete/delete-proxy-dialog";
 import { EditGroupDialog } from "@/components/page-components/proxy-list/edit/group";
-import RequestPasswordModal from "@/components/page-components/proxy-list/request-certificate-trust";
 import { Button } from "@/components/ui/button";
 import Code from "@/components/ui/code";
 import {
@@ -29,11 +28,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CertificateManager } from "@/helpers/certificate-manager";
-import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import proxyListStore from "@/stores/proxy-list";
 import { Label } from "@radix-ui/react-label";
-import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
 import DockerControl from "../../docker-control";
 
@@ -48,35 +44,9 @@ export default function ProxyListTable() {
   } = proxyListStore();
 
   const [loaded, setLoaded] = useState(false);
-  const [currentEndpoint, setCurrentEndpoint] = useState<IProxyData>();
-  const [passwordModalShown, setPasswordModalOpen] = useState(false);
-
-  const onDeleteFromHosts = useCallback(
-    async (endpoint: IProxyData, password: string) => {
-      invoke("delete_line_from_hosts", {
-        hostname: endpoint.hostname,
-        password: password,
-      });
-    },
-    []
-  );
-
-  const onDeleteEndpoint = useCallback(async (endpoint: IProxyData) => {
-    setCurrentEndpoint(endpoint);
-    const confirmed = await confirm(
-      `Are you sure to delete ${endpoint.nickname}?`
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    invoke("remove_cert_from_keychain", {
-      name: `${endpoint.hostname}`,
-    });
-    setPasswordModalOpen(true);
-  }, []);
 
   const prepareConfigPage = useCallback(async () => {
+    console.log("prepareConfigPage");
     load();
     setLoaded(true);
   }, [load]);
@@ -90,8 +60,8 @@ export default function ProxyListTable() {
     if (selectedGroup?.isNoGroup) {
       return (
         <>
-          A list of your current proxies. <br /> Press Start Container to start
-          the docker webserver.
+          All of your proxies. <br />
+          Add these proxies to the group to start container for this group!
         </>
       );
     }
@@ -105,8 +75,7 @@ export default function ProxyListTable() {
     } else {
       return (
         <>
-          {" "}
-          list of proxies in this group. <br />
+          List of proxies in this group. <br />
           Press start Container to start the docker webserver.
         </>
       );
@@ -115,21 +84,6 @@ export default function ProxyListTable() {
 
   return (
     <>
-      {/* <CreateProxyV2SideComponent open={openSide} setOpen={setOpenSide} /> */}
-      <RequestPasswordModal
-        description={"Ophiuchi wants to edit: /etc/hosts."}
-        isOpen={passwordModalShown}
-        onConfirm={function (password: string): void {
-          setPasswordModalOpen(false);
-          if (!currentEndpoint) return;
-          onDeleteFromHosts(currentEndpoint, password);
-          const configHelper = CertificateManager.shared();
-          configHelper.deleteCertificateFiles(currentEndpoint.hostname);
-          configHelper.deleteNginxConfigurationFiles(currentEndpoint.hostname);
-
-          removeProxyFromList(currentEndpoint);
-        }}
-      />
       <div className="px-6 border border-zinc-700 rounded-md py-6">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
@@ -172,17 +126,18 @@ export default function ProxyListTable() {
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <Table>
-                <TableCaption>{tableCaption()}</TableCaption>
+                <TableCaption className="text-xs">
+                  {tableCaption()}
+                </TableCaption>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[400px]">Hostname</TableHead>
                     <TableHead>Application Port</TableHead>
-                    <TableHead>Prepare</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {proxyList.map(async (proxyItem) => {
+                  {proxyList.map((proxyItem) => {
                     return (
                       <TableRow key={proxyItem.hostname}>
                         <TableCell className="font-medium">
@@ -203,11 +158,9 @@ export default function ProxyListTable() {
                         </TableCell>
                         <TableCell>{proxyItem.port}</TableCell>
 
-                        <TableCell>
-                          <PrepareButtons item={proxyItem} />
-                        </TableCell>
+                        {/* <TableCell></TableCell> */}
 
-                        <TableCell className="text-right">
+                        <TableCell className="flex gap-4 justify-end items-center">
                           {/* <p
                           onClick={() => {
                             openCert(proxyItem);
@@ -216,10 +169,11 @@ export default function ProxyListTable() {
                         >
                           Locate Cert
                         </p> */}
+                          <PrepareButtons item={proxyItem} />
                           {selectedGroup?.isNoGroup ? (
-                            <DeleteProxyDialog 
-                              proxy={proxyItem} 
-                              onDelete={() => removeProxyFromList(proxyItem)} 
+                            <DeleteProxyDialog
+                              proxy={proxyItem}
+                              onDelete={() => removeProxyFromList(proxyItem)}
                             />
                           ) : (
                             <Tooltip>

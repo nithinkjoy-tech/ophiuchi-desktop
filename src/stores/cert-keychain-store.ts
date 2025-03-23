@@ -26,7 +26,8 @@ export interface CertKeychainStore {
   findCertificates: (name: string) => Promise<Certificate[]>;
 }
 
-const CACHE_TIME = 60000;
+// cache for 5 seconds
+const CACHE_TIME = 5000;
 
 function parseCertificateOutput(output: string): Certificate[] {
   const certificates: Certificate[] = [];

@@ -7,7 +7,10 @@ interface CopyCommandButtonProps {
   className?: string;
 }
 
-export function CopyCommandButton({ command, className }: CopyCommandButtonProps) {
+export function CopyCommandButton({
+  command,
+  className,
+}: CopyCommandButtonProps) {
   const { toast } = useToast();
 
   return (
@@ -23,8 +26,8 @@ export function CopyCommandButton({ command, className }: CopyCommandButtonProps
         });
       }}
     >
-      <Copy className="h-4 w-4 mr-2" />
-      Copy Command
+      <Copy className="h-3 w-3" />
+      <span className="text-xs">Copy Command</span>
     </Button>
   );
-} 
+}
