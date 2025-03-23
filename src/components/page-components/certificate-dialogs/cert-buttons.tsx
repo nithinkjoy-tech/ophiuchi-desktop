@@ -1,22 +1,14 @@
 "use client";
 
-import AddToHostsDialog from "@/components/page-components/certificate-dialogs/add-to-hosts";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { appDataDir } from "@tauri-apps/api/path";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
-import { CheckIcon, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import AddCertificateToKeychainDialog from "./add-to-keychain";
-import PrepareDialog from "./prepare-dialog";
+import { PrepareProxyDialog } from "../proxy-list/prepare/prepare-proxy-dialog";
 
 export default function PrepareButtons({ item }: { item: IProxyData }) {
   const [certExist, setCertExist] = useState<boolean | undefined>(undefined);
@@ -50,20 +42,26 @@ export default function PrepareButtons({ item }: { item: IProxyData }) {
     );
   }
 
-  if (!certExist) {
-    return (
-      <PrepareDialog
-        item={item}
+  // if (!certExist) {
+  //   return (
+  //     <PrepareProxyDialog
+  //       proxy={item}
+  //       onDone={() => {
+  //         checkExist(item.hostname);
+  //       }}
+  //     />
+  //   );
+  // }
+
+  return (
+    <div className="flex items-center gap-2">
+      <PrepareProxyDialog
+        proxy={item}
         onDone={() => {
           checkExist(item.hostname);
         }}
       />
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <Tooltip>
+      {/* <Tooltip>
         <TooltipTrigger asChild>
           <Button
             variant={"outline"}
@@ -94,7 +92,7 @@ export default function PrepareButtons({ item }: { item: IProxyData }) {
         onClose={() => {
           //
         }}
-      />
+      /> */}
     </div>
   );
 }
