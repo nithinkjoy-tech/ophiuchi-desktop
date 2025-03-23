@@ -182,38 +182,58 @@ fn add_cert_to_keychain(pem_file_path: String) -> Result<(), String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn remove_cert_from_keychain(name: String) {
+fn remove_cert_from_keychain(name: String) -> Result<(), String> {
   // Get the user's home directory
-  if let Some(home_dir) = env::var_os("HOME") {
-    if let Some(home_dir_str) = home_dir.to_str() {
-      // Create the full path to the keychain file
-      let keychain_path = format!("{}/Library/Keychains/login.keychain-db", home_dir_str);
+  let home_dir = env::var_os("HOME")
+    .ok_or_else(|| "Home directory not found.".to_string())?;
+  let home_dir_str = home_dir
+    .to_str()
+    .ok_or_else(|| "Failed to convert home directory to string.".to_string())?;
 
-      // Create a command to execute
-      let mut command = Command::new("security");
+  // Create the full path to the keychain file
+  let keychain_path = format!("{}/Library/Keychains/login.keychain-db", home_dir_str);
 
-      // Add arguments to the command
-      command
-        .arg("delete-certificate")
-        .arg("-c")
-        .arg(name)
-        .arg("-t")
-        .arg(&keychain_path); // Use the resolved keychain path
+  // First find the exact certificate hash
+  let find_command = format!(
+    "security find-certificate -c '{}' -Z | grep SHA-1 | awk '{{print $NF}}'",
+    name
+  );
 
-      // Execute the command
-      let output = command.output().expect("Failed to execute command");
+  // Get the hash of the exact certificate
+  let hash_output = Command::new("sh")
+    .arg("-c")
+    .arg(&find_command)
+    .output()
+    .map_err(|e| format!("Failed to execute find command: {}", e))?;
 
-      // Check the command's exit status
-      if output.status.success() {
-        println!("Certificate removed successfully.");
-      } else {
-        eprintln!("Error: {:?}", output);
-      }
-    } else {
-      eprintln!("Failed to convert home directory to string.");
-    }
+  if !hash_output.status.success() {
+    return Err("Certificate not found".to_string());
+  }
+
+  let hash = String::from_utf8_lossy(&hash_output.stdout).trim().to_string();
+  if hash.is_empty() {
+    return Err("Certificate not found".to_string());
+  }
+
+  // Delete the certificate using the exact hash
+  let delete_command = format!(
+    "security delete-certificate -Z '{}'",
+    hash
+  );
+
+  let output = Command::new("sh")
+    .arg("-c")
+    .arg(&delete_command)
+    .output()
+    .map_err(|e| format!("Failed to execute delete command: {}", e))?;
+
+  // Check the command's exit status and provide detailed error message
+  if output.status.success() {
+    println!("Certificate removed successfully.");
+    Ok(())
   } else {
-    eprintln!("Home directory not found.");
+    let error = String::from_utf8_lossy(&output.stderr);
+    Err(format!("Failed to remove certificate: {}", error))
   }
 }
 
@@ -222,11 +242,12 @@ fn cert_exist_on_keychain(name: String) -> Result<bool, String> {
     // Create a command to execute
     let mut command = Command::new("security");
 
-    // Add arguments to the command
+    // Add arguments to the command. Find Exact Certificate
     command
         .arg("find-certificate")
         .arg("-c")
-        .arg(name);
+        .arg(name)
+        .arg("-Z");
 
     // Execute the command
     let output = command.output().expect("Failed to execute command");
@@ -289,6 +310,58 @@ fn check_host_exists(hostname: String) -> Result<bool, String> {
     }
 }
 
+#[tauri::command(rename_all = "snake_case")]
+fn get_hosts_file_context() -> Result<String, String> {
+  match read_hosts_file() {
+    Ok(hosts_content) => Ok(hosts_content),
+    Err(e) => Err(e.to_string()),
+  }
+}
+
+#[tauri::command(rename_all = "snake_case")]
+fn find_certificates(name: String) -> Result<String, String> {
+    // Create and execute the command
+    let command = format!(
+        "security find-certificate -a -c {} -Z",
+        name
+    );
+
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(&command)
+        .output()
+        .map_err(|e| format!("Failed to execute find command: {}", e))?;
+
+    if !output.status.success() {
+        return Err("Failed to find certificates".to_string());
+    }
+
+    let result = String::from_utf8_lossy(&output.stdout).to_string();
+    Ok(result)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+fn remove_cert_by_sha1(sha1: String) -> Result<(), String> {
+    let delete_command = format!(
+        "security delete-certificate -Z '{}'",
+        sha1
+    );
+
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(&delete_command)
+        .output()
+        .map_err(|e| format!("Failed to execute delete command: {}", e))?;
+
+    if output.status.success() {
+        println!("Certificate removed successfully.");
+        Ok(())
+    } else {
+        let error = String::from_utf8_lossy(&output.stderr);
+        Err(format!("Failed to remove certificate: {}", error))
+    }
+}
+
 fn main() {
   dotenv().ok();
   let _ = fix_path_env::fix();
@@ -333,6 +406,9 @@ fn main() {
       keychain_passwords::save_password,
       keychain_passwords::get_password,
       keychain_passwords::delete_password,
+      get_hosts_file_context,
+      find_certificates,
+      remove_cert_by_sha1,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

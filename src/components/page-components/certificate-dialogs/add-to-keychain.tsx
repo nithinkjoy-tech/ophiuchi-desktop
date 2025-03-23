@@ -19,7 +19,7 @@ import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { useToast } from "@/hooks/use-toast";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
-import { KeyRound, Triangle } from "lucide-react";
+import { KeyRound, TriangleAlertIcon } from "lucide-react";
 import React, { useCallback, useEffect } from "react";
 
 export default function AddCertificateToKeychainDialog({
@@ -139,7 +139,7 @@ export default function AddCertificateToKeychainDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Triangle className="h-5 w-5 text-primary" />
+            <TriangleAlertIcon className="h-5 w-5 text-primary" />
             Add Certificate to Keychain Access
           </DialogTitle>
           <DialogDescription>
@@ -156,12 +156,12 @@ export default function AddCertificateToKeychainDialog({
             </TabsList>
             <TabsContent value="auto" className="py-4">
               <div className="grid gap-4">
-                <Label className="text-base">
+                <Label className="">
                   Click the button to add the certificate to your keychain
                   access and trust.
                 </Label>
                 {certExistsOnKeychain && (
-                  <Label className="text-yellow-500 text-base">
+                  <Label className="text-yellow-500">
                     Note: Certificate already added to keychain access. <br />
                     This will remove and re-add the certificate.
                   </Label>
@@ -172,8 +172,8 @@ export default function AddCertificateToKeychainDialog({
             <TabsContent value="manual" className="py-4">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Triangle className="h-5 w-5 text-yellow-500" />
-                  <p className="text-base text-muted-foreground">
+                  <TriangleAlertIcon className="h-5 w-5 text-yellow-500" />
+                  <p className="text-muted-foreground">
                     If you prefer to add the certificate manually, you can use the following command:
                   </p>
                 </div>

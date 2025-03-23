@@ -1,6 +1,7 @@
 import { AddProxyDialog } from "@/components/page-components/add-proxy";
 import PrepareButtons from "@/components/page-components/certificate-dialogs/cert-buttons";
 import { AddProxyToGroupDialog } from "@/components/page-components/proxy-list/add-new/proxy-to-group";
+import { DeleteProxyDialog } from "@/components/page-components/proxy-list/delete/delete-proxy-dialog";
 import { EditGroupDialog } from "@/components/page-components/proxy-list/edit/group";
 import RequestPasswordModal from "@/components/page-components/proxy-list/request-certificate-trust";
 import { Button } from "@/components/ui/button";
@@ -216,15 +217,10 @@ export default function ProxyListTable() {
                           Locate Cert
                         </p> */}
                           {selectedGroup?.isNoGroup ? (
-                            <Button
-                              size={"sm"}
-                              variant={"destructive"}
-                              onClick={() => {
-                                onDeleteEndpoint(proxyItem);
-                              }}
-                            >
-                              Delete
-                            </Button>
+                            <DeleteProxyDialog 
+                              proxy={proxyItem} 
+                              onDelete={() => removeProxyFromList(proxyItem)} 
+                            />
                           ) : (
                             <Tooltip>
                               <TooltipTrigger asChild>

@@ -19,7 +19,7 @@ export default function Code({
 
   return (
     <code
-      className={cn(fontColor(), bgColor(), "px-1.5 py-0.5 rounded-md text-sm whitespace-break-spaces", className)}
+      className={cn(fontColor(), bgColor(), "px-1.5 py-0.5 rounded-md text-sm whitespace-break-spaces border-muted-foreground/20 border", className)}
     >
       {children}
     </code>

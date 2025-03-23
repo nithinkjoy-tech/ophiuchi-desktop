@@ -16,7 +16,7 @@ import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { CheckIcon, LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import AddCertificateToKeychainDialog from "./add-to-keychain";
-import GenerateCertificateDialog from "./generate";
+import PrepareDialog from "./prepare-dialog";
 
 export default function PrepareButtons({ item }: { item: IProxyData }) {
   const [certExist, setCertExist] = useState<boolean | undefined>(undefined);
@@ -52,7 +52,7 @@ export default function PrepareButtons({ item }: { item: IProxyData }) {
 
   if (!certExist) {
     return (
-      <GenerateCertificateDialog
+      <PrepareDialog
         item={item}
         onDone={() => {
           checkExist(item.hostname);

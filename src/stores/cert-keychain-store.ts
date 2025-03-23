@@ -3,21 +3,75 @@ import { appDataDir, BaseDirectory, homeDir } from "@tauri-apps/api/path";
 import { UnwatchFn, watch } from "@tauri-apps/plugin-fs";
 import { create } from "zustand";
 
-interface CertKeychainStore {
+export interface Certificate {
+  sha1: string;
+  sha256: string;
+  keychain: string;
+  name: string;
+  subject: string;
+  attributes: Record<string, string>;
+}
+
+export interface CertKeychainStore {
   watcher: UnwatchFn | null;
   certOnKeychain: Record<string, { exists: boolean; timestamp: number }>;
+  foundCertificates: Certificate[];
   init: () => Promise<void>;
+  findExcatCertificateByName: (name: string) => Promise<Certificate | undefined>;
   checkCertExistOnKeychain: (name: string, shouldFetch?: boolean) => Promise<boolean>;
   removeCertFromKeychain: (name: string) => Promise<void>;
+  removeCertBySha1: (sha1: string) => Promise<void>;
   addCertToKeychain: (pemFilePath: string) => Promise<void>;
   generateManualCommand: (name: string) => Promise<string>;
+  findCertificates: (name: string) => Promise<Certificate[]>;
 }
 
 const CACHE_TIME = 60000;
 
+function parseCertificateOutput(output: string): Certificate[] {
+  const certificates: Certificate[] = [];
+  const blocks = output.split('SHA-256 hash:').filter(block => block.trim());
+
+  for (const block of blocks) {
+    try {
+      const lines = block.split('\n').map(line => line.trim());
+      const cert: Partial<Certificate> = {
+        attributes: {},
+      };
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.startsWith('SHA-1 hash:')) {
+          cert.sha1 = line.split(':')[1].trim();
+        } else if (i === 0) { // First line is SHA-256
+          cert.sha256 = line.trim();
+        } else if (line.startsWith('keychain:')) {
+          cert.keychain = line.split(':')[1].trim().replace(/"/g, '');
+        } else if (line.includes('"alis"<blob>=')) {
+          cert.name = line.split('=')[1].trim().replace(/"/g, '');
+        } else if (line.includes('"subj"<blob>=')) {
+          cert.subject = line.split('=')[1].trim().replace(/"/g, '');
+        } else if (line.includes('<blob>=')) {
+          const [key, value] = line.split('<blob>=');
+          cert.attributes![key.trim().replace(/"/g, '')] = value.trim().replace(/"/g, '');
+        }
+      }
+
+      if (cert.sha1 && cert.name) {
+        certificates.push(cert as Certificate);
+      }
+    } catch (error) {
+      console.error('Failed to parse certificate block:', error);
+    }
+  }
+
+  return certificates;
+}
+
 export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   watcher: null,
   certOnKeychain: {},
+  foundCertificates: [],
   init: async () => {
     if (get().watcher) {
       console.warn('Watcher already exists');
@@ -34,6 +88,17 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
     });
 
     set({ watcher: unWatchFn });
+  },
+  findCertificates: async (name: string) => {
+    try {
+      const output = await invoke<string>('find_certificates', { name });
+      const certificates = parseCertificateOutput(output);
+      set({ foundCertificates: certificates });
+      return certificates;
+    } catch (error) {
+      console.error('Failed to find certificates:', error);
+      return [];
+    }
   },
   /**
    * Check if the certificate exists on the keychain.
@@ -54,28 +119,41 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
       return cached.exists;
     }
 
-    const exists = await invoke<boolean>('cert_exist_on_keychain', {
-      name,
-    });
+    const exists = await get().findExcatCertificateByName(name);
 
     set(state => ({
       ...state,
       certOnKeychain: {
         ...state.certOnKeychain,
-        [name]: { exists: exists as boolean, timestamp: now }
+        [name]: { exists: !!exists, timestamp: now }
       }
     }));
 
-    return exists;
+    return !!exists;
+  },
+
+  /**
+   * Find exact certificate by name.
+   * @param name 
+   * @returns 
+   */
+  findExcatCertificateByName: async (name: string) => {
+    const certificates = await get().findCertificates(name);
+    return certificates.find(cert => cert.name === name);
   },
   /**
    * Remove requires the name of the certificate.
    * @param name 
    */
   removeCertFromKeychain: async (name) => {
-    await invoke('remove_cert_from_keychain', {
-      name,
-    });
+    const certificates = await get().findCertificates(name);
+    const exactMatch = certificates.find(cert => cert.name === name);
+
+    if (!exactMatch) {
+      throw new Error(`Certificate not found: ${name}`);
+    }
+
+    await get().removeCertBySha1(exactMatch.sha1);
 
     set(state => ({
       ...state,
@@ -84,6 +162,9 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
         [name]: { exists: false, timestamp: Date.now() }
       }
     }));
+  },
+  removeCertBySha1: async (sha1: string) => {
+    await invoke('remove_cert_by_sha1', { sha1 });
   },
   /**
    * Adding requires path to the pem file.

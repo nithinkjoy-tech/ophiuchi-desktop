@@ -69,10 +69,6 @@ function SettingsPage() {
                     ? "Container is running."
                     : "Container is not running."}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  A command <Code>docker compose</Code> is run periodically to
-                  check if the container is running.
-                </p>
                 <div className="text-sm text-muted-foreground">
                   {isDockerContainerRunning && (
                     <>

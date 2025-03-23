@@ -18,7 +18,7 @@ import { appDataDir } from "@tauri-apps/api/path";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import React, { useEffect } from "react";
 
-export default function GenerateCertificateDialog({
+export default function PrepareDialog({
   item,
   onDone,
 }: {
@@ -55,9 +55,9 @@ export default function GenerateCertificateDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="secondary" size="sm" className="">
+        <Button variant="default" size="sm" className="">
           <PlusIcon className="h-4 w-4" />
-          Generate Certificate...
+          Prepare for Use...
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
