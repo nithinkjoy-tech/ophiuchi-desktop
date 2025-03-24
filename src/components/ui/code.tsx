@@ -3,10 +3,12 @@ import { cn } from "@/lib/utils";
 export default function Code({
   children,
   style = "normal",
+  type = "normal",
   className,
 }: {
   children: React.ReactNode;
   style?: "normal" | "sudo";
+  type?: "normal" | "block";
   className?: string;
 }) {
   function fontColor() {
@@ -17,11 +19,23 @@ export default function Code({
     return style === "normal" ? " " : "bg-red-950";
   }
 
-  return (
-    <code
-      className={cn(fontColor(), bgColor(), "px-1.5 py-0.5 rounded-md text-sm whitespace-break-spaces border-muted-foreground/20 border", className)}
-    >
-      {children}
-    </code>
-  );
+  function blockStyle() {
+    return type === "block"
+      ? "w-full border border-muted-foreground/20 rounded-md font-mono"
+      : "px-1.5 py-0.5 rounded-md whitespace-break-spaces border-muted-foreground/20 border";
+  }
+
+  if (type === "block") {
+    return (
+      <div className={cn(fontColor(), bgColor(), blockStyle(), className)}>
+        {children}
+      </div>
+    );
+  } else {
+    return (
+      <code className={cn(fontColor(), bgColor(), blockStyle(), className)}>
+        {children}
+      </code>
+    );
+  }
 }

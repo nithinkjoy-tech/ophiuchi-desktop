@@ -27,7 +27,7 @@ export function CopyCommandButton({
       }}
     >
       <Copy className="h-3 w-3" />
-      <span className="text-xs">Copy Command</span>
+      <span className="text-xs">Copy</span>
     </Button>
   );
 }

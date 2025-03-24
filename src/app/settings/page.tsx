@@ -50,7 +50,7 @@ function SettingsPage() {
           </CardHeader>
           <CardContent className="grid gap-4">
             <p
-              className="cursor-pointer underline"
+              className="cursor-pointer underline text-xs"
               onClick={() => {
                 onOpenFinder();
               }}
@@ -61,8 +61,10 @@ function SettingsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Dark Mode</CardTitle>
-            <CardDescription>Toggle the dark mode!</CardDescription>
+            <CardTitle>Dark/Light Mode</CardTitle>
+            <CardDescription>
+              Toggle between dark and light mode, or auto-detect system theme.
+            </CardDescription>
           </CardHeader>
           <CardContent className="">
             <div className="p-1">

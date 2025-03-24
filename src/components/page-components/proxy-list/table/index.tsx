@@ -68,7 +68,7 @@ export default function ProxyListTable() {
 
     if (proxyList.length === 0) {
       return (
-        <div className="text-yellow-200">
+        <div className="text-yellow-500 dark:text-yellow-300">
           Add existing proxy in this group to start container for this group!
         </div>
       );

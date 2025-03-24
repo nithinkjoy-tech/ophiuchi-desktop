@@ -57,8 +57,8 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   const [certExists, setCertExists] = useState(false);
   const [certGenerating, setCertGenerating] = useState(false);
   const [manualCommands, setManualCommands] = useState<Record<number, string>>({
-    1: '', // keychain command
-    2: `sudo sh -c 'echo "127.0.0.1 ${proxy.hostname}" >> /etc/hosts'` // hosts command
+    1: "", // keychain command
+    2: `sudo sh -c 'echo "127.0.0.1 ${proxy.hostname}" >> /etc/hosts'`, // hosts command
   });
   const [stepStatuses, setStepStatuses] = useState<Record<number, StepStatus>>({
     1: { completed: false, loading: false },
@@ -123,7 +123,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
       const keychainCommand = await generateManualCommand(proxy.hostname);
       setManualCommands((prev) => ({
         ...prev,
-        1: keychainCommand
+        1: keychainCommand,
       }));
     } catch (e) {
       console.error("Failed to check initial status:", e);
@@ -132,6 +132,11 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
 
   useEffect(() => {
     checkInitialStatus();
+    // interval
+    const interval = setInterval(() => {
+      checkInitialStatus();
+    }, 1000);
+    return () => clearInterval(interval);
   }, [open]);
 
   const handleGenerateCertificate = async () => {
@@ -235,8 +240,6 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
       title: "Setup Completed",
       description: "All steps completed successfully.",
     });
-    onDone();
-    setOpen(false);
   };
 
   function handleSetupManually(): void {
@@ -294,6 +297,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
             </CardHeader>
             <CardContent>
               <Button
+                size={"sm"}
                 onClick={handleGenerateCertificate}
                 disabled={certExists || certGenerating}
               >
@@ -437,7 +441,8 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                             className={cn(
                               "text-sm font-semibold flex gap-2 items-center",
                               stepStatuses[step].error && "text-destructive",
-                              stepStatuses[step].completed && "text-muted-foreground line-through"
+                              stepStatuses[step].completed &&
+                                "text-muted-foreground line-through"
                             )}
                           >
                             {title}
@@ -451,10 +456,17 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                         </CardHeader>
                         <CardContent className="text-xs">
                           <div className="space-y-2">
-                            <Code className="text-sm whitespace-pre-wrap break-all max-w-full overflow-x-auto p-4">
+                            <Code
+                              type="block"
+                              className="text-sm whitespace-pre-wrap break-all max-w-full overflow-x-auto p-4"
+                            >
                               {manualCommands[step]}
                             </Code>
-                            <CopyCommandButton command={manualCommands[step]} />
+                            <div className="flex justify-end">
+                              <CopyCommandButton
+                                command={manualCommands[step]}
+                              />
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
