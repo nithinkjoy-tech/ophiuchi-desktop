@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::{self, prelude::*};
 use std::process::Command;
 use tauri_plugin_sentry::{minidump, sentry};
+use regex;
 
 #[tauri::command(rename_all = "snake_case")]
 fn add_line_to_hosts(hostname: String, password: String) {
@@ -32,15 +33,14 @@ fn add_line_to_hosts(hostname: String, password: String) {
 #[tauri::command(rename_all = "snake_case")]
 fn delete_line_from_hosts(hostname: String, password: String) {
   backup_hosts_file(&password);
-  let line_to_add = format!("127.0.0.1 {}", hostname);
-  find_and_delete_line_hosts_with_sudo(&line_to_add, &password);
+  find_and_delete_line_hosts_with_sudo(&hostname, &password);
 }
 
-fn find_and_delete_line_hosts_with_sudo(line_to_delete: &str, password: &str) {
-  let escaped_line = line_to_delete.replace("/", "\\/"); // Escape slashes
+fn find_and_delete_line_hosts_with_sudo(hostname: &str, password: &str) {
+  let escaped_hostname = regex::escape(hostname);
   let sed_command = format!(
-    "echo '{}' | sudo -S sed -i '' '/^{}/d' /etc/hosts",
-    password, escaped_line
+    "echo '{}' | sudo -S sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*{}$/d' /etc/hosts",
+    password, escaped_hostname
   );
 
   let status = Command::new("sh")
@@ -50,9 +50,9 @@ fn find_and_delete_line_hosts_with_sudo(line_to_delete: &str, password: &str) {
     .expect("Failed to run shell command");
 
   if status.success() {
-    println!("Line deleted from /etc/hosts: {}", line_to_delete);
+    println!("Hostname {} deleted from /etc/hosts", hostname);
   } else {
-    eprintln!("Error deleting line from /etc/hosts.");
+    eprintln!("Error deleting hostname from /etc/hosts.");
   }
 }
 

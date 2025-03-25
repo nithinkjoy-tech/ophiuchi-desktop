@@ -94,7 +94,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       description: "Delete hostname entry from hosts file",
       requiresPassword: true,
       manualCommand: (proxy: IProxyData) =>
-        `sudo sed -i '' '/${proxy.hostname}/d' /etc/hosts`,
+        `sudo sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*'${proxy.hostname}'$/d' /etc/hosts`,
     },
     {
       step: 2,
