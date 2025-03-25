@@ -106,11 +106,18 @@ export function AppSidebar() {
                   <span>Proxies</span>
                 </Link>
               </SidebarMenuButton>
-              <SidebarMenuSub className="py-1 grid gap-1">
+              <SidebarMenuSub className="py-1 grid gap-0.5">
                 {groupList.map((group) => {
                   const isMainPage = pathname === "/";
                   return (
-                    <SidebarMenuSubItem key={group.id}>
+                    <SidebarMenuSubItem
+                      key={group.id}
+                      className={cn(
+                        selectedGroup?.id === group.id &&
+                          "bg-accent-foreground/10 border-[0.5px] border-b-black/10 border-t-white/20",
+                        "p-1 px-2 rounded-md"
+                      )}
+                    >
                       <Link href={isMainPage ? "#" : "/"}>
                         {/* Purposely used div here because SidebarMenuSubItem is an <a> component and it will produce an error. */}
                         <div
@@ -119,14 +126,7 @@ export function AppSidebar() {
                           )}
                           onClick={() => setSelectedGroup(group)}
                         >
-                          <span
-                            className={cn(
-                              "text-xs",
-                              selectedGroup?.id === group.id && "underline"
-                            )}
-                          >
-                            {group.name}
-                          </span>
+                          <span className={cn("text-xs")}>{group.name}</span>
                           {/* {selectedGroup?.id === group.id && (
                             <CheckIcon
                               size={ICON_SIZE}
@@ -138,7 +138,9 @@ export function AppSidebar() {
                               {group.includedHosts.length}
                             </span>
                           ) : (
-                            <span className="text-xs text-muted-foreground">{totalProxyList.length}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {totalProxyList.length}
+                            </span>
                           )}
                         </div>
                       </Link>

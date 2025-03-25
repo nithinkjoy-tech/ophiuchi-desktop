@@ -8,7 +8,7 @@ export type IProxyData = {
 export type IProxyGroupData = {
   id: string;
   name: string;
-  isNoGroup: boolean; // true if this is the default group
+  isNoGroup: boolean; // true if this is the total proxy list
   includedHosts: (string | IProxyData)[];
   createdAt: string;
   updatedAt: string;

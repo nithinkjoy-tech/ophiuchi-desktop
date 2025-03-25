@@ -93,7 +93,7 @@ export default function ProxyListTable() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="flex h-6 items-center">
             {selectedGroup?.isNoGroup ? (
               "All Proxies"
             ) : (
