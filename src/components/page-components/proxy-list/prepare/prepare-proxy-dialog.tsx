@@ -28,13 +28,14 @@ import { cn } from "@/lib/utils";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { hostsStore } from "@/stores/hosts-store";
 import {
+  AlertCircle,
   CheckCircle2,
   KeyRound,
   Loader2,
   ShieldAlert,
   Wrench,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface PrepareProxyDialogProps {
   proxy: IProxyData;
@@ -51,8 +52,10 @@ const STEP_DELAY = 500;
 
 export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
+  const [everyStepCompleted, setEveryStepCompleted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [certExists, setCertExists] = useState(false);
   const [certGenerating, setCertGenerating] = useState(false);
@@ -76,67 +79,80 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     requiresPassword: false,
   };
 
-  const steps = [
-    {
-      step: 1,
-      title: "Add to Keychain",
-      description: "Add SSL certificate to Keychain Access",
-      requiresPassword: false,
-    },
-    {
-      step: 2,
-      title: "Add to /etc/hosts",
-      description: "Add hostname entry to hosts file",
-      requiresPassword: true,
-    },
-  ];
+  const steps = useMemo(
+    () => [
+      {
+        step: 1,
+        title: "Add to Keychain",
+        description: "Add SSL certificate to Keychain Access",
+        requiresPassword: false,
+      },
+      {
+        step: 2,
+        title: "Add to /etc/hosts",
+        description: "Add hostname entry to hosts file",
+        requiresPassword: true,
+      },
+    ],
+    []
+  );
 
   const checkInitialStatus = async () => {
     try {
-      // Check if certificate exists
       const certExist = await certManager.checkCertificateExists(
         proxy.hostname
       );
       setCertExists(certExist);
 
       if (!certExist) {
+        setLoading(false);
         return;
       }
 
-      // Check if cert is in keychain
-      const certInKeychain = await certKeychainStore
-        .getState()
-        .checkCertExistOnKeychain(proxy.hostname, true);
+      // Run all other checks in parallel
+
+      const [certInKeychain, hostExists, keychainCommand] = await Promise.all([
+        certKeychainStore
+          .getState()
+          .checkCertExistOnKeychain(proxy.hostname, true)
+          .then((result) => {
+            return result;
+          }),
+        checkHostExists(proxy.hostname).then((result) => {
+          return result;
+        }),
+        generateManualCommand(proxy.hostname).then((result) => {
+          return result;
+        }),
+      ]);
+
       setStepStatuses((prev) => ({
         ...prev,
         1: { ...prev[1], completed: certInKeychain },
-      }));
-
-      // Check if hostname is in hosts file
-      const hostExists = await checkHostExists(proxy.hostname);
-      setStepStatuses((prev) => ({
-        ...prev,
         2: { ...prev[2], completed: hostExists },
       }));
 
-      // Load manual commands
-      const keychainCommand = await generateManualCommand(proxy.hostname);
       setManualCommands((prev) => ({
         ...prev,
         1: keychainCommand,
       }));
     } catch (e) {
       console.error("Failed to check initial status:", e);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     checkInitialStatus();
+
     // interval
-    const interval = setInterval(() => {
-      checkInitialStatus();
-    }, 1000);
-    return () => clearInterval(interval);
+    if (open) {
+      const interval = setInterval(() => {
+        checkInitialStatus();
+      }, 1000);
+      return () => clearInterval(interval);
+    }
   }, [open]);
 
   const handleGenerateCertificate = async () => {
@@ -193,9 +209,12 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     }
   };
 
-  const everyStepCompleted = steps.every(
-    (step) => stepStatuses[step.step].completed
-  );
+  useEffect(() => {
+    const everyStepCompleted = steps.every(
+      (step) => stepStatuses[step.step].completed
+    );
+    setEveryStepCompleted(everyStepCompleted);
+  }, [stepStatuses, steps]);
 
   const handleAutoSetup = async () => {
     if (everyStepCompleted) {
@@ -255,15 +274,22 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     onDone();
   }
 
+  function displayIcon() {
+    if (loading) {
+      return <Loader2 className="h-3.5 w-3.5 animate-spin" />;
+    }
+    if (everyStepCompleted) {
+      return <Wrench className="h-3.5 w-3.5 text-green-500" />;
+    } else {
+      return <AlertCircle className="h-3.5 w-3.5 text-yellow-500" />;
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          {everyStepCompleted ? (
-            <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-          ) : (
-            <Wrench className="h-3.5 w-3.5" />
-          )}
+        <Button variant="outline" size="sm">
+          {displayIcon()}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px]">
@@ -450,9 +476,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                               <CheckCircle2 className="h-4 w-4 text-green-500" />
                             )}
                           </CardTitle>
-                          <CardDescription className="text-xs">
-                            {description}
-                          </CardDescription>
+                          <CardDescription>{description}</CardDescription>
                         </CardHeader>
                         <CardContent className="text-xs">
                           <div className="space-y-2">

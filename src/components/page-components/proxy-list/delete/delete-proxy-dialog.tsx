@@ -28,7 +28,14 @@ import { cn } from "@/lib/utils";
 import type { Certificate } from "@/stores/cert-keychain-store";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { invoke } from "@tauri-apps/api/core";
-import { CheckCircle2, KeyRound, Loader2, ShieldAlert, Trash, TriangleAlertIcon } from "lucide-react";
+import {
+  CheckCircle2,
+  KeyRound,
+  Loader2,
+  ShieldAlert,
+  Trash,
+  TriangleAlertIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface DeleteProxyDialogProps {
@@ -47,7 +54,7 @@ interface StepStatus {
   error?: string;
 }
 
-const STEP_DELAY = 500;
+const STEP_DELAY = 250;
 
 export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
   const { toast } = useToast();
@@ -172,6 +179,15 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
             hostname: proxy.hostname,
             password,
           });
+
+          const hostsExists = await invoke("check_host_exists", {
+            hostname: proxy.hostname,
+          });
+          setStepStatuses((prev) => ({
+            ...prev,
+            1: { ...prev[1], completed: !hostsExists, error: hostsExists ? "Failed to delete from /etc/hosts" : undefined },
+          }));
+
           break;
         case 2:
           if (!selectedCertificate) {
@@ -413,9 +429,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                                 <CheckCircle2 className="h-4 w-4 text-green-500" />
                               )}
                             </CardTitle>
-                            <CardDescription className="text-xs">
-                              {description}
-                            </CardDescription>
+                            <CardDescription>{description}</CardDescription>
                           </CardHeader>
                           <CardContent className="text-xs">
                             <div className="space-y-2">

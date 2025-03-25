@@ -4,6 +4,13 @@ import { AddProxyToGroupDialog } from "@/components/page-components/proxy-list/a
 import { DeleteProxyDialog } from "@/components/page-components/proxy-list/delete/delete-proxy-dialog";
 import { EditGroupDialog } from "@/components/page-components/proxy-list/edit/group";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Code from "@/components/ui/code";
 import {
   Dialog,
@@ -29,7 +36,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import proxyListStore from "@/stores/proxy-list";
-import { Label } from "@radix-ui/react-label";
+import { BookmarkMinus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import DockerControl from "../../docker-control";
 
@@ -84,84 +91,80 @@ export default function ProxyListTable() {
 
   return (
     <>
-      <div className="px-6 border border-zinc-700 rounded-md py-6">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <Label className="font-medium leading-6  ">
-              {selectedGroup?.isNoGroup ? (
-                "Proxy List"
-              ) : (
-                <div className="flex gap-2 items-center">
-                  <div>Proxy Group - {selectedGroup?.name}</div>
-                  <div className="flex">
-                    <EditGroupDialog />
-                  </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {selectedGroup?.isNoGroup ? (
+              "All Proxies"
+            ) : (
+              <div className="flex gap-2 items-center">
+                <div>Proxy Group - {selectedGroup?.name}</div>
+                <div className="flex">
+                  <EditGroupDialog />
                 </div>
-              )}
-            </Label>
-          </div>
+              </div>
+            )}
+          </CardTitle>
 
-          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-            <div className="flex gap-2 items-center">
-              {selectedGroup?.isNoGroup ? (
-                <AddProxyDialog
-                  onDone={() => {
-                    //
-                  }}
-                />
-              ) : (
-                <>
-                  <DockerControl />
-                  <AddProxyToGroupDialog
+          <CardDescription className="flex justify-end">
+            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+              <div className="flex gap-2 items-center">
+                {selectedGroup?.isNoGroup ? (
+                  <AddProxyDialog
                     onDone={() => {
                       //
                     }}
                   />
-                </>
-              )}
+                ) : (
+                  <>
+                    <DockerControl />
+                    <AddProxyToGroupDialog
+                      onDone={() => {
+                        //
+                      }}
+                    />
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="mt-8 flow-root">
-          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <Table>
-                <TableCaption className="text-xs">
-                  {tableCaption()}
-                </TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[400px]">Hostname</TableHead>
-                    <TableHead>Application Port</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {proxyList.map((proxyItem) => {
-                    return (
-                      <TableRow key={proxyItem.hostname}>
-                        <TableCell className="font-medium">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <a
-                                className="p-2 underline cursor-pointer text-sm sm:pl-0"
-                                href={`https://${proxyItem.hostname}`}
-                                target="_blank"
-                              >
-                                {proxyItem.hostname}
-                              </a>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">
-                              <p>Click to open on browser.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TableCell>
-                        <TableCell>{proxyItem.port}</TableCell>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableCaption className="text-xs">{tableCaption()}</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[400px]">Hostname</TableHead>
+                <TableHead>Application Port</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {proxyList.map((proxyItem) => {
+                return (
+                  <TableRow key={proxyItem.hostname}>
+                    <TableCell className="font-medium">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <a
+                            className="p-2 underline cursor-pointer text-sm sm:pl-0"
+                            href={`https://${proxyItem.hostname}`}
+                            target="_blank"
+                          >
+                            {proxyItem.hostname}
+                          </a>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Click to open on browser.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>{proxyItem.port}</TableCell>
 
-                        {/* <TableCell></TableCell> */}
+                    {/* <TableCell></TableCell> */}
 
-                        <TableCell className="flex gap-4 justify-end items-center">
-                          {/* <p
+                    <TableCell className="flex gap-4 justify-end items-center">
+                      {/* <p
                           onClick={() => {
                             openCert(proxyItem);
                           }}
@@ -169,47 +172,43 @@ export default function ProxyListTable() {
                         >
                           Locate Cert
                         </p> */}
-                          <PrepareButtons item={proxyItem} />
-                          {selectedGroup?.isNoGroup ? (
-                            <DeleteProxyDialog
-                              proxy={proxyItem}
-                              onDelete={() => removeProxyFromList(proxyItem)}
-                            />
-                          ) : (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size={"sm"}
-                                  variant={"ghost"}
-                                  onClick={() => {
-                                    if (!selectedGroup) return;
-                                    removeProxyFromGroup(
-                                      proxyItem,
-                                      selectedGroup
-                                    );
-                                  }}
-                                >
-                                  Remove from Group
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="right">
-                                <p>
-                                  Remove this proxy from the group{" "}
-                                  <Code>{selectedGroup?.name}</Code>
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </div>
-      </div>
+                      <PrepareButtons item={proxyItem} />
+                      {selectedGroup?.isNoGroup ? (
+                        <DeleteProxyDialog
+                          proxy={proxyItem}
+                          onDelete={() => removeProxyFromList(proxyItem)}
+                        />
+                      ) : (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size={"sm"}
+                              variant={"ghost"}
+                              onClick={() => {
+                                if (!selectedGroup) return;
+                                removeProxyFromGroup(proxyItem, selectedGroup);
+                              }}
+                            >
+                              <BookmarkMinus className="h-3.5 w-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            Remove this proxy from the group:
+                            <br />
+                            <div className="mt-2">
+                              <Code>{selectedGroup?.name}</Code>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
       {selectedGroup?.isNoGroup ? null : (
         <div className="text-right pt-2">
           <Dialog>

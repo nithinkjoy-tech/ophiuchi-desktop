@@ -29,7 +29,7 @@ export function EditGroupDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={"outline"} size={"sm"} className="flex">
+        <Button variant={"outline"} size={"xs"} className="flex">
           Edit
         </Button>
         {/* <Button variant="outline" className="w-full">

@@ -16,6 +16,8 @@ export interface CertKeychainStore {
   watcher: UnwatchFn | null;
   certOnKeychain: Record<string, { exists: boolean; timestamp: number }>;
   foundCertificates: Certificate[];
+  homeDir: string;
+  appDataDir: string;
   init: () => Promise<void>;
   findExcatCertificateByName: (name: string) => Promise<Certificate | undefined>;
   checkCertExistOnKeychain: (name: string, shouldFetch?: boolean) => Promise<boolean>;
@@ -73,7 +75,12 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   watcher: null,
   certOnKeychain: {},
   foundCertificates: [],
+  homeDir: '',
+  appDataDir: '',
   init: async () => {
+    const homeDirPath = await homeDir();
+    const appDataDirPath = await appDataDir();
+    set({ homeDir: homeDirPath, appDataDir: appDataDirPath });
     if (get().watcher) {
       console.warn('Watcher already exists');
       // call unwatchFn 
@@ -172,7 +179,7 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
    * @param name
    */
   addCertToKeychain: async (name) => {
-    const appDataDirPath = await appDataDir();
+    const appDataDirPath = get().appDataDir;
     const pemFilePath = `${appDataDirPath}/cert/${name}/cert.pem`;
     await invoke('add_cert_to_keychain', {
       pem_file_path: pemFilePath,
@@ -184,8 +191,8 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
    * @returns
    */
   generateManualCommand: async (name) => {
-    const homeDirectory = await homeDir();
-    const appDataDirPath = await appDataDir();
+    const homeDirectory = get().homeDir;
+    const appDataDirPath = get().appDataDir;
 
     const keychainPath = `${homeDirectory}/Library/Keychains/login.keychain-db`;
     const pemFilePath = `${appDataDirPath}/cert/${name}/cert.pem`;

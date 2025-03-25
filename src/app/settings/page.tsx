@@ -42,13 +42,16 @@ function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Generated Files</CardTitle>
-            <CardDescription>
-              Generated certificates, nginx configuration files are saved at
-              <br />
-              <Code>{appDataDirPath}</Code>
+            <CardDescription className="space-y-2">
+              <div>
+                Generated certificates, nginx configuration files are saved at:
+              </div>
+              <div className="">
+                <Code className="text-xs">{appDataDirPath}</Code>
+              </div>
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4">
+          <CardContent className="flex">
             <p
               className="cursor-pointer underline text-xs"
               onClick={() => {
@@ -67,7 +70,7 @@ function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="">
-            <div className="p-1">
+            <div className="">
               <ModeToggle />
             </div>
           </CardContent>
