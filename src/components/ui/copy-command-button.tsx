@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { Copy } from "lucide-react";
+import { toast } from "sonner";
 
 interface CopyCommandButtonProps {
   command: string;
@@ -11,7 +11,6 @@ export function CopyCommandButton({
   command,
   className,
 }: CopyCommandButtonProps) {
-  const { toast } = useToast();
 
   return (
     <Button
@@ -20,10 +19,7 @@ export function CopyCommandButton({
       className={className}
       onClick={() => {
         navigator.clipboard.writeText(command);
-        toast({
-          title: "Command Copied",
-          description: "Command has been copied to clipboard",
-        });
+        toast.success("Command Copied");
       }}
     >
       <Copy className="h-3 w-3" />

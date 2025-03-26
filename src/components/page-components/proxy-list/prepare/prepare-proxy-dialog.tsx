@@ -23,7 +23,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { hostsStore } from "@/stores/hosts-store";
@@ -36,6 +35,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface PrepareProxyDialogProps {
   proxy: IProxyData;
@@ -51,7 +51,6 @@ interface StepStatus {
 const STEP_DELAY = 500;
 
 export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
@@ -160,17 +159,10 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
       setCertGenerating(true);
       await certManager.generateCertificate(proxy.hostname);
       setCertExists(true);
-      toast({
-        title: "Certificate Generated",
-        description: "SSL certificate has been generated successfully",
-      });
+      toast.success("Certificate Generated");
     } catch (e) {
       console.error("Failed to generate certificate:", e);
-      toast({
-        title: "Certificate Generation Failed",
-        description: "Failed to generate SSL certificate",
-        variant: "destructive",
-      });
+      toast.error("Certificate Generation Failed");
     } finally {
       setCertGenerating(false);
     }
@@ -224,11 +216,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     }
 
     if (!password && steps[1].requiresPassword && !stepStatuses[2].completed) {
-      toast({
-        title: "Password Required",
-        description: "Please enter your system password to proceed with setup.",
-        variant: "destructive",
-      });
+      toast.error("Password Required");
       return;
     }
 
@@ -241,11 +229,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
       const success = await handleStepExecution(step);
 
       if (!success) {
-        toast({
-          title: "Setup Failed",
-          description: `Failed at step ${step}. Please check the error message and try again.`,
-          variant: "destructive",
-        });
+        toast.error(`Failed at step ${step}. Please check the error message and try again.`);
         return;
       }
 
@@ -255,19 +239,12 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
       }
     }
 
-    toast({
-      title: "Setup Completed",
-      description: "All steps completed successfully.",
-    });
+    toast.success("Setup Completed");
   };
 
   function handleSetupManually(): void {
     if (!everyStepCompleted) {
-      toast({
-        title: "Setup Not Complete",
-        description: "Please complete all steps before proceeding.",
-        variant: "destructive",
-      });
+      toast.error("Setup Not Complete");
       return;
     }
     setOpen(false);

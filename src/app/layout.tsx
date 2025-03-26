@@ -1,9 +1,10 @@
+"use client";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import { SystemSetupProvider } from "@/components/page-components/setup-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Toaster } from "@/components/ui/toaster";
-import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -11,11 +12,6 @@ const notoSans = Noto_Sans({
   subsets: ["latin"],
   weight: ["100", "300", "700"],
 });
-
-export const metadata: Metadata = {
-  title: "Local HTTPS Proxy Server",
-  description: "Local HTTPS Proxy Server",
-};
 
 export default function RootLayout({
   children,

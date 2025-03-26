@@ -42,17 +42,6 @@ export default function PrepareButtons({ item }: { item: IProxyData }) {
     );
   }
 
-  // if (!certExist) {
-  //   return (
-  //     <PrepareProxyDialog
-  //       proxy={item}
-  //       onDone={() => {
-  //         checkExist(item.hostname);
-  //       }}
-  //     />
-  //   );
-  // }
-
   return (
     <div className="flex items-center gap-2">
       <PrepareProxyDialog
@@ -61,38 +50,6 @@ export default function PrepareButtons({ item }: { item: IProxyData }) {
           checkExist(item.hostname);
         }}
       />
-      {/* <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={"outline"}
-            size={"sm"}
-            onClick={() => {
-              openCert(item);
-            }}
-          >
-            <CheckIcon
-              className="text-green-500"
-              size={ICON_SIZE}
-              strokeWidth={ICON_STROKE_WIDTH}
-            />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <p>Show in Finder.</p>
-        </TooltipContent>
-      </Tooltip>
-      <AddCertificateToKeychainDialog
-        item={item}
-        onDone={() => {
-          //
-        }}
-      />
-      <AddToHostsDialog
-        hostname={item.hostname}
-        onClose={() => {
-          //
-        }}
-      /> */}
     </div>
   );
 }

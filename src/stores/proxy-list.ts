@@ -4,6 +4,7 @@ import {
   IProxyData,
   IProxyGroupData,
 } from "@/helpers/proxy-manager/interfaces";
+import { toast } from "sonner";
 import { create } from "zustand";
 
 interface ProxyListStore {
@@ -13,7 +14,7 @@ interface ProxyListStore {
   selectedGroup: IProxyGroupData | null;
   load(): void;
   setProxyList: (proxyList: IProxyData[]) => void;
-  removeProxyFromList: (proxy: IProxyData) => void;
+  deleteProxyFromList: (proxy: IProxyData) => void;
   addProxyItem: (data: IProxyData, group?: IProxyGroupData) => void;
   addGroup: (groupName: string) => void;
   deleteGroup: (groupId: string) => void;
@@ -71,7 +72,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     set({ proxyList: filteredList });
   },
   setProxyList: (proxyList: IProxyData[]) => set({ proxyList }),
-  removeProxyFromList: async (proxy: IProxyData) => {
+  deleteProxyFromList: async (proxy: IProxyData) => {
     const mgr = ProxyManager.sharedManager();
     const _proxyList = await mgr.getProxies();
     const _groupList = await mgr.getGroups();
@@ -81,6 +82,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     const filteredList = filterProxyFromGroup(_proxyList, get().selectedGroup!);
     const updatedGroupList = removeProxyItemFromGroupList(_groupList, proxy);
     await mgr.saveGroups(updatedGroupList);
+    toast.success("Proxy Deleted");
     set({ proxyList: filteredList, totalProxyList: _proxyList });
   },
   addGroup: async (groupName: string) => {
@@ -101,6 +103,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
       newGroupData.includedHosts.find((e) => e === el.hostname)
     );
     set({ proxyList: filteredList });
+    toast.success("Group Created");
     mgr.saveGroups(_groupList);
   },
   updateGroup: async (group: IProxyGroupData) => {
@@ -110,6 +113,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     group.updatedAt = new Date().toISOString();
     _groupList[groupIndex] = group;
     await mgr.saveGroups(_groupList);
+    toast.success("Group Updated");
     set({ groupList: _groupList });
   },
   deleteGroup: async (groupId: string) => {
@@ -119,6 +123,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     _groupList.splice(index, 1);
     set({ groupList: _groupList });
     get().setSelectedGroup(_groupList[0]);
+    toast.success("Group Deleted");
     await mgr.saveGroups(_groupList);
   },
   addProxyItem: async (data: IProxyData, group?: IProxyGroupData) => {
@@ -146,6 +151,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
       proxyList: _proxyList,
       totalProxyList: _proxyList,
     });
+    toast.success("Proxy Added");
   },
   addProxyToGroup: async (proxy: IProxyData, group: IProxyGroupData) => {
     const mgr = ProxyManager.sharedManager();
@@ -156,6 +162,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     await mgr.saveGroups(_groupList);
     const filteredList = filterProxyFromGroup(_proxyList, filterGroup!);
     set({ proxyList: filteredList, groupList: _groupList });
+    toast.success("Proxy Added to Group");
   },
   removeProxyFromGroup: async (proxy: IProxyData, group: IProxyGroupData) => {
     const mgr = ProxyManager.sharedManager();
@@ -169,6 +176,18 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     await mgr.saveGroups(_groupList);
     const filteredList = filterProxyFromGroup(_proxyList, filterGroup!);
     set({ proxyList: filteredList, groupList: _groupList });
+    toast.success("Proxy Removed from Group", {
+      description: "Click Undo to add it back.",
+      action: {
+        label: "Undo",
+        onClick: () => {
+          get().addProxyToGroup(
+            proxy,
+            get().selectedGroup!
+          );
+        },
+      },
+    });
   },
   setSelectedGroup: async (group: IProxyGroupData) => {
     const mgr = ProxyManager.sharedManager();

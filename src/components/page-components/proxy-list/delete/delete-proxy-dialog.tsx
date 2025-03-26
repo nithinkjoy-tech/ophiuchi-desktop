@@ -23,7 +23,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { Certificate } from "@/stores/cert-keychain-store";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
@@ -37,6 +36,7 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface DeleteProxyDialogProps {
   proxy: IProxyData;
@@ -57,7 +57,6 @@ interface StepStatus {
 const STEP_DELAY = 250;
 
 export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
-  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [hostsContext, setHostsContext] = useState<HostsFileContext | null>(
     null
@@ -225,12 +224,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
     }
 
     if (!password && steps[0].requiresPassword && !stepStatuses[1].completed) {
-      toast({
-        title: "Password Required",
-        description:
-          "Please enter your system password to proceed with deletion.",
-        variant: "destructive",
-      });
+      toast.error("Password Required");
       return;
     }
 
@@ -243,11 +237,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       const success = await handleStepExecution(step);
 
       if (!success) {
-        toast({
-          title: "Deletion Failed",
-          description: `Failed at step ${step}. Please check the error message and try again.`,
-          variant: "destructive",
-        });
+        toast.error(`Failed at step ${step}. Please check the error message and try again.`);
         return;
       }
 
@@ -258,22 +248,14 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       }
     }
 
-    toast({
-      title: "Cleanup Completed",
-      description: "All steps completed successfully.",
-    });
+    toast.success("Cleanup Completed");
   };
 
   function handleDeleteManually(): void {
     if (!everyStepCompleted) {
-      toast({
-        title: "Proxy Not Deleted",
-        description: "Please complete all steps before deleting the proxy.",
-        variant: "destructive",
-      });
+      toast.error("Proxy Not Deleted");
       return;
     }
-    console.log("handleDeleteManually");
     setOpen(false);
     onDelete();
   }

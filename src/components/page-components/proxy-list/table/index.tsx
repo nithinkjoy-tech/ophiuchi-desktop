@@ -45,9 +45,10 @@ export default function ProxyListTable() {
     load,
     proxyList,
     selectedGroup,
-    removeProxyFromList,
+    deleteProxyFromList,
     removeProxyFromGroup,
     deleteGroup,
+    addProxyToGroup,
   } = proxyListStore();
 
   const [loaded, setLoaded] = useState(false);
@@ -176,7 +177,7 @@ export default function ProxyListTable() {
                       {selectedGroup?.isNoGroup ? (
                         <DeleteProxyDialog
                           proxy={proxyItem}
-                          onDelete={() => removeProxyFromList(proxyItem)}
+                          onDelete={() => deleteProxyFromList(proxyItem)}
                         />
                       ) : (
                         <Tooltip>
