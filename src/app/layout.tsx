@@ -10,7 +10,7 @@ import "./globals.css";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
-  weight: ["100", "300", "700"],
+  weight: ["100", "300", "400", "500", "600", "700", "800"],
 });
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={notoSans.className}>
-        <SystemSetupProvider/>
+        <SystemSetupProvider />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
