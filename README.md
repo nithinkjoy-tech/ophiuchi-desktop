@@ -38,6 +38,15 @@ CI=true npm run tauri build
 npm run tauri build -- --debug
 ```
 
+### Build macOS App Bundles
+
+Tauri v2 build command for macOS app bundles
+
+```
+npm run tauri build -- --bundles app
+```
+
+
 ---
 # Troubleshooting 
 
@@ -65,6 +74,32 @@ rustup target add aarch64-apple-darwin x86_64-apple-darwin
 ```bash
 npm run tauri build -- --debug
 ```
+
+## Build Errors
+
+### Can't find crate for 'core' error...
+
+```bash
+error[E0463]: can't find crate for `core`
+  |
+  = note: the `aarch64-apple-darwin` target may not be installed
+  = help: consider downloading the target with `rustup target add aarch64-apple-darwin`
+
+For more information about this error, try `rustc --explain E0463`.
+error: could not compile `cfg-if` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+failed to build aarch64-apple-darwin binary: failed to build app
+    Error [tauri_cli_node] failed to build aarch64-apple-darwin binary: failed to build app
+```
+
+In this case, update rustup to the latest version:
+
+```bash
+rustup update
+```
+
+
+
 
 ### notes 
 

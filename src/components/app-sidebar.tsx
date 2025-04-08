@@ -35,6 +35,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DiscordIcon from "./icons/discord";
 import { AddProxyGroupDialog } from "./page-components/proxy-list/add-new/group";
+import { Badge } from "./ui/badge";
 import { Tooltip, TooltipContent } from "./ui/tooltip";
 
 // Menu items.
@@ -73,6 +74,7 @@ const helpItems = [
     url: "https://discord.gg/fpp8kNyPtz",
     isBlank: true,
     icon: () => <DiscordIcon className="w-4 h-4" />,
+    badgeText: "Feedback"
   },
 ];
 
@@ -220,6 +222,9 @@ export function AppSidebar() {
                     >
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.badgeText && (
+                        <Badge variant="outline" className="text-xs rounded-full text-muted-foreground">{item.badgeText}</Badge>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

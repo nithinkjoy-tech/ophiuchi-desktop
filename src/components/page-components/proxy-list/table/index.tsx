@@ -69,7 +69,7 @@ export default function ProxyListTable() {
       return (
         <>
           All of your proxies. <br />
-          Add these proxies to the group to start container for this group!
+          Start container here or add these proxies to the group to organize them.
         </>
       );
     }
@@ -111,11 +111,14 @@ export default function ProxyListTable() {
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
               <div className="flex gap-2 items-center">
                 {selectedGroup?.isNoGroup ? (
-                  <AddProxyDialog
-                    onDone={() => {
-                      //
-                    }}
-                  />
+                  <>
+                    <DockerControl />
+                    <AddProxyDialog
+                      onDone={() => {
+                        //
+                      }}
+                    />
+                  </>
                 ) : (
                   <>
                     <DockerControl />

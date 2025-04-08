@@ -36,17 +36,28 @@ export default function DockerLogModal({
     onClosed && onClosed();
   }
 
-  function openModal() {
-    setIsOpen(true);
-  }
-
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-4xl">
+        <DialogContent
+          className="sm:max-w-4xl"
+          onCloseAutoFocus={(event) => {
+            // fix for https://github.com/radix-ui/primitives/issues/1241
+            event.preventDefault();
+            document.body.style.pointerEvents = "";
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Docker Command Log</DialogTitle>
-            <DialogDescription></DialogDescription>
+            <DialogDescription>
+              This dialog shows the logs of the docker command that was
+              executed.
+              <br />
+              To see detailed logs of the docker command, check the detailed logs
+              checkbox.
+              <br />
+              <span>You can close the dialog anytime.</span>
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
