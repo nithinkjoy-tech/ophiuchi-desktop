@@ -34,6 +34,7 @@ const ButtonWithDropdown = forwardRef<
     onRestart: () => void;
   }
 >(({ onStart, onStop, onRestart }, ref) => {
+  const { proxyList } = proxyListStore();
   const { isDockerContainerRunning } = systemStatusStore();
 
   return (
@@ -43,6 +44,7 @@ const ButtonWithDropdown = forwardRef<
         className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
         size="sm"
         onClick={isDockerContainerRunning ? onStop : onStart}
+        disabled={proxyList.length === 0}
       >
         <DockerIcon className="w-4 h-4" />
         {isDockerContainerRunning ? "Stop Container" : "Start Container"}
@@ -54,6 +56,7 @@ const ButtonWithDropdown = forwardRef<
             className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
             size="icon-sm"
             aria-label="Options"
+            disabled={proxyList.length === 0}
           >
             <ChevronDownIcon size={16} aria-hidden="true" />
           </Button>
