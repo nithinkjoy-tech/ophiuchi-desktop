@@ -97,7 +97,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
     },
     {
       step: 2,
-      title: "Remove from Keychain",
+      title: "Remove Certificate from Keychain",
       description: "Remove SSL certificate from Keychain",
       requiresPassword: false,
       manualCommand: (proxy: IProxyData) => {
@@ -184,7 +184,13 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
           });
           setStepStatuses((prev) => ({
             ...prev,
-            1: { ...prev[1], completed: !hostsExists, error: hostsExists ? "Failed to delete from /etc/hosts" : undefined },
+            1: {
+              ...prev[1],
+              completed: !hostsExists,
+              error: hostsExists
+                ? "Failed to delete from /etc/hosts"
+                : undefined,
+            },
           }));
 
           break;
@@ -237,7 +243,9 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       const success = await handleStepExecution(step);
 
       if (!success) {
-        toast.error(`Failed at step ${step}. Please check the error message and try again.`);
+        toast.error(
+          `Failed at step ${step}. Please check the error message and try again.`
+        );
         return;
       }
 
@@ -274,7 +282,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
             Delete Proxy - {proxy.nickname}
           </DialogTitle>
           <DialogDescription>
-            You can delete this proxy automatically or manually
+            You can proceed to delete this proxy automatically or manually.
           </DialogDescription>
         </DialogHeader>
 
@@ -379,8 +387,8 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
             <TabsContent value="manual" className="py-4">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <TriangleAlertIcon className="h-3.5 w-3.5 text-yellow-500" />
-                  <p className="text-sm text-muted-foreground">
+                  <TriangleAlertIcon className="h-3 w-3 text-yellow-500" />
+                  <p className="text-xs text-muted-foreground">
                     Follow these steps carefully. System password will be
                     required for some operations.
                   </p>
@@ -415,9 +423,9 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                           </CardHeader>
                           <CardContent className="text-xs">
                             <div className="space-y-2">
-                              <p className="text-sm text-muted-foreground">
-                                <Code>{manualCommand(proxy)}</Code>
-                              </p>
+                              <Code type="block" className="p-2 text-xs">
+                                {manualCommand(proxy)}
+                              </Code>
                               <CopyCommandButton
                                 command={manualCommand(proxy)}
                               />

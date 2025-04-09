@@ -217,16 +217,14 @@ export default function ProxyListTable() {
 
                     {/* <TableCell></TableCell> */}
 
-                    <TableCell className="flex gap-4 justify-end items-center">
+                    <TableCell className="flex gap-2 justify-end items-center">
                       <PrepareButtons item={proxyItem} />
                       <GroupManageDropdown item={proxyItem} />
-                      {selectedGroup?.isNoGroup ? (
+                      {selectedGroup?.isNoGroup && (
                         <DeleteProxyDialog
                           proxy={proxyItem}
                           onDelete={() => deleteProxyFromList(proxyItem)}
                         />
-                      ) : (
-                        <></>
                       )}
                     </TableCell>
                   </TableRow>
@@ -248,7 +246,8 @@ export default function ProxyListTable() {
               <DialogHeader>
                 <DialogTitle>Delete Group</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete this group?
+                  Are you sure you want to delete this group? <br />
+                  This cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <Code>{selectedGroup?.name}</Code>

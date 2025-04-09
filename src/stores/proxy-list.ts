@@ -151,7 +151,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
       proxyList: _proxyList,
       totalProxyList: _proxyList,
     });
-    toast.success("Proxy Added");
+    toast.success("Proxy Created");
   },
   addProxyToGroup: async (proxy: IProxyData, group: IProxyGroupData) => {
     const mgr = ProxyManager.sharedManager();

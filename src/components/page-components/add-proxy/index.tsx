@@ -22,7 +22,7 @@ import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import proxyListStore from "@/stores/proxy-list";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "lucide-react";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -42,13 +42,10 @@ const formSchema = z.object({
 });
 
 export function AddProxyDialog({ onDone }: { onDone: () => void }) {
-  const { addProxyItem, selectedGroup, totalProxyList } = proxyListStore();
-  const [groupName, setGroupName] = React.useState("");
+  const { addProxyItem, totalProxyList } = proxyListStore();
   const [open, setOpen] = React.useState(false);
-  const [portState, setPortState] = React.useState("");
-  const [hostnameState, setHostnameState] = React.useState("");
   const [hostnameExists, setHostnameExists] = React.useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [canSubmit, setCanSubmit] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,9 +55,9 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
     },
   });
 
-  const fixHostname = (hostname: string) => {
+  const fixHostname = useCallback((hostname: string) => {
     return hostname.replace(/[^a-z0-9\-\.]/g, "");
-  };
+  }, []);
 
   const checkHostnameExists = useCallback(
     (hostname: string) => {
@@ -71,10 +68,21 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
     [totalProxyList]
   );
 
+  const updateCanSubmit = useCallback(() => {
+    const values = form.getValues();
+    const hostname = fixHostname(values.hostname);
+    checkHostnameExists(hostname);
+    if (hostnameExists) return;
+    if (values.port <= 0 || values.port > 65535) return;
+    if (hostname.length < 4) return;
+    setCanSubmit(true);
+  }, [form, fixHostname, checkHostnameExists, hostnameExists]);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     const hostname = fixHostname(values.hostname);
     checkHostnameExists(hostname);
     if (hostnameExists) return;
+    if (values.port <= 0 || values.port > 65535) return;
     const data: IProxyData = {
       nickname: `Proxy for ${hostname}`,
       hostname: hostname,
@@ -105,7 +113,8 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
         <DialogHeader>
           <DialogTitle>Create Proxy</DialogTitle>
           <DialogDescription>
-            Create a new proxy to turn your local app into a custom hostname.
+            Create a new proxy to turn your local web app to support custom
+            hostname and https.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 items-center">
@@ -116,11 +125,16 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                 name="port"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Application port:</FormLabel>
+                    <FormLabel>Application port</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         type="number"
+                        required={true}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          updateCanSubmit();
+                        }}
                         // value={portState}
                         // onChange={(e) => {
                         //   const port = e.target.value;
@@ -140,12 +154,20 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                 name="hostname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hostname:</FormLabel>
+                    <FormLabel>Hostname</FormLabel>
                     <FormControl>
-                      <Input placeholder={"my.app.local"} {...field} />
+                      <Input
+                        placeholder={"my.app.local"}
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          updateCanSubmit();
+                        }}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Any hostname you want to use.
+                      Any hostname you want to use locally. <br />
+                      Needs to be at least 4 characters long.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -157,11 +179,12 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
         <DialogFooter>
           <Button
             type="submit"
+            disabled={!canSubmit}
             onClick={() => {
               form.handleSubmit(onSubmit)();
             }}
           >
-            Save
+            Create
           </Button>
         </DialogFooter>
       </DialogContent>
