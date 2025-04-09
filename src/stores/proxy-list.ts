@@ -160,7 +160,7 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     const filterGroup = _groupList.find((el) => el.id === group.id);
     filterGroup!.includedHosts.push(proxy.hostname);
     await mgr.saveGroups(_groupList);
-    const filteredList = filterProxyFromGroup(_proxyList, filterGroup!);
+    const filteredList = filterProxyFromGroup(_proxyList, get().selectedGroup!);
     set({ proxyList: filteredList, groupList: _groupList });
     toast.success("Proxy Added to Group");
   },
@@ -174,17 +174,14 @@ const proxyListStore = create<ProxyListStore>((set, get) => ({
     );
     filterGroup!.includedHosts.splice(index, 1);
     await mgr.saveGroups(_groupList);
-    const filteredList = filterProxyFromGroup(_proxyList, filterGroup!);
+    const filteredList = filterProxyFromGroup(_proxyList, get().selectedGroup!);
     set({ proxyList: filteredList, groupList: _groupList });
     toast.success("Proxy Removed from Group", {
       description: "Click Undo to add it back.",
       action: {
         label: "Undo",
         onClick: () => {
-          get().addProxyToGroup(
-            proxy,
-            get().selectedGroup!
-          );
+          get().addProxyToGroup(proxy, group);
         },
       },
     });

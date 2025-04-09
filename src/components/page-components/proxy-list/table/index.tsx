@@ -22,6 +22,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCaption,
@@ -35,21 +43,62 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import proxyListStore from "@/stores/proxy-list";
-import { BookmarkMinus } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Bookmark } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
 import DockerControl from "../../docker-control";
 
+function GroupManageDropdown({ item }: { item: IProxyData }) {
+  const { removeProxyFromGroup, addProxyToGroup, groupList } = proxyListStore();
+
+  const numberOfGroupsThisProxyIsIn = groupList.filter((group) => {
+    return !!group.includedHosts.find((host) => host === item.hostname);
+  }).length;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant={"outline"} size={"sm"}>
+          <Bookmark className="h-3.5 w-3.5" /> {numberOfGroupsThisProxyIsIn}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="bottom" sideOffset={4} align="end">
+        <DropdownMenuLabel>Manage Proxy in Group</DropdownMenuLabel>
+        {groupList.map((group) => {
+          const isChecked = !!group.includedHosts.find(
+            (host) => host === item.hostname
+          );
+          const isNoGroup = group.isNoGroup;
+          return (
+            <React.Fragment key={group.id}>
+              <DropdownMenuCheckboxItem
+                checked={isChecked || isNoGroup}
+                disabled={isNoGroup}
+                onClick={() => {
+                  if (isNoGroup) {
+                    return;
+                  } else {
+                    isChecked
+                      ? removeProxyFromGroup(item, group)
+                      : addProxyToGroup(item, group);
+                  }
+                }}
+              >
+                {group.name}
+              </DropdownMenuCheckboxItem>
+              {isNoGroup && <DropdownMenuSeparator />}
+            </React.Fragment>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export default function ProxyListTable() {
-  const {
-    load,
-    proxyList,
-    selectedGroup,
-    deleteProxyFromList,
-    removeProxyFromGroup,
-    deleteGroup,
-    addProxyToGroup,
-  } = proxyListStore();
+  const { load, proxyList, selectedGroup, deleteProxyFromList, deleteGroup } =
+    proxyListStore();
 
   const [loaded, setLoaded] = useState(false);
 
@@ -69,7 +118,8 @@ export default function ProxyListTable() {
       return (
         <>
           All of your proxies. <br />
-          Start container here or add these proxies to the group to organize them.
+          Start container here or add these proxies to the group to organize
+          them.
         </>
       );
     }
@@ -168,42 +218,15 @@ export default function ProxyListTable() {
                     {/* <TableCell></TableCell> */}
 
                     <TableCell className="flex gap-4 justify-end items-center">
-                      {/* <p
-                          onClick={() => {
-                            openCert(proxyItem);
-                          }}
-                          className="text-indigo-400 hover:text-indigo-300 cursor-pointer"
-                        >
-                          Locate Cert
-                        </p> */}
                       <PrepareButtons item={proxyItem} />
+                      <GroupManageDropdown item={proxyItem} />
                       {selectedGroup?.isNoGroup ? (
                         <DeleteProxyDialog
                           proxy={proxyItem}
                           onDelete={() => deleteProxyFromList(proxyItem)}
                         />
                       ) : (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size={"sm"}
-                              variant={"ghost"}
-                              onClick={() => {
-                                if (!selectedGroup) return;
-                                removeProxyFromGroup(proxyItem, selectedGroup);
-                              }}
-                            >
-                              <BookmarkMinus className="h-3.5 w-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">
-                            Remove this proxy from the group:
-                            <br />
-                            <div className="mt-2">
-                              <Code>{selectedGroup?.name}</Code>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
+                        <></>
                       )}
                     </TableCell>
                   </TableRow>
@@ -217,7 +240,7 @@ export default function ProxyListTable() {
         <div className="text-right pt-2">
           <Dialog>
             <DialogTrigger asChild>
-              <Button type="button" variant={"ghost"} size="sm">
+              <Button type="button" variant={"outline"} size="sm">
                 <span className="text-muted-foreground">Delete Group</span>
               </Button>
             </DialogTrigger>
