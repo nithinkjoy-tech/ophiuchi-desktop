@@ -14,7 +14,7 @@ export function CopyCommandButton({
 
   return (
     <Button
-      size="sm"
+      size="xs"
       variant="secondary"
       className={className}
       onClick={() => {

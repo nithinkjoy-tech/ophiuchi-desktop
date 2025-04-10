@@ -91,6 +91,8 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       step: 1,
       title: "Remove from /etc/hosts",
       description: "Delete hostname entry from hosts file",
+      manualDescription:
+        "Copy and paste the following command into your terminal.",
       requiresPassword: true,
       manualCommand: (proxy: IProxyData) =>
         `sudo sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*'${proxy.hostname}'$/d' /etc/hosts`,
@@ -99,6 +101,8 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       step: 2,
       title: "Remove Certificate from Keychain",
       description: "Remove SSL certificate from Keychain",
+      manualDescription:
+        "Copy and paste the following command into your terminal.",
       requiresPassword: false,
       manualCommand: (proxy: IProxyData) => {
         // get the SHA-1
@@ -112,6 +116,8 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       step: 3,
       title: "Delete Certificate Files",
       description: "Clean up certificate files",
+      manualDescription:
+        "Copy and paste the following command into your terminal.",
       requiresPassword: false,
       manualCommand: (proxy: IProxyData) => {
         // CertificateManager
@@ -407,7 +413,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                       ({
                         step,
                         title,
-                        description,
+                        manualDescription,
                         requiresPassword,
                         manualCommand,
                       }) => (
@@ -426,7 +432,9 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                                 <CheckCircle2 className="h-4 w-4 text-green-500" />
                               )}
                             </CardTitle>
-                            <CardDescription>{description}</CardDescription>
+                            <CardDescription>
+                              {manualDescription}
+                            </CardDescription>
                           </CardHeader>
                           <CardContent className="text-xs">
                             <div className="space-y-2">
@@ -436,9 +444,11 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                               >
                                 {manualCommand(proxy)}
                               </Code>
-                              <CopyCommandButton
-                                command={manualCommand(proxy)}
-                              />
+                              <div className="flex justify-end">
+                                <CopyCommandButton
+                                  command={manualCommand(proxy)}
+                                />
+                              </div>
                             </div>
                           </CardContent>
                         </Card>

@@ -74,7 +74,7 @@ const helpItems = [
     url: "https://discord.gg/fpp8kNyPtz",
     isBlank: true,
     icon: () => <DiscordIcon className="w-4 h-4" />,
-    badgeText: "Feedback"
+    badgeText: "Feedback",
   },
 ];
 
@@ -115,9 +115,9 @@ export function AppSidebar() {
                     <SidebarMenuSubItem
                       key={group.id}
                       className={cn(
+                        "p-1 px-2 rounded-md hover:bg-accent-foreground/5",
                         selectedGroup?.id === group.id &&
-                          "bg-accent-foreground/10 border-[0.5px] border-b-black/10 border-t-white/20",
-                        "p-1 px-2 rounded-md"
+                          "bg-accent-foreground/10 border-[0.5px] border-b-black/10 border-t-white/20 hover:bg-accent-foreground/10"
                       )}
                     >
                       <Link href={isMainPage ? "#" : "/"}>
@@ -223,7 +223,12 @@ export function AppSidebar() {
                       <item.icon />
                       <span>{item.title}</span>
                       {item.badgeText && (
-                        <Badge variant="outline" className="text-xs rounded-full text-muted-foreground">{item.badgeText}</Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-xs rounded-full text-muted-foreground"
+                        >
+                          {item.badgeText}
+                        </Badge>
                       )}
                     </Link>
                   </SidebarMenuButton>
