@@ -168,7 +168,7 @@ export function AppSidebar() {
                       <CheckCircle
                         size={ICON_SIZE}
                         strokeWidth={ICON_STROKE_WIDTH}
-                        className="text-blue-500"
+                        className="text-green-500"
                       />
                     ) : (
                       <Tooltip>

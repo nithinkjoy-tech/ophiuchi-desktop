@@ -27,13 +27,23 @@ function SettingsPage() {
           <CardHeader>
             <CardTitle>Docker Intallation</CardTitle>
             <CardDescription>
-              Docker is required to run the proxy server.
+              Docker is required to run the proxy server. If you don&apos;t have
+              it, you can install it from the link below.
+              <br /><br/>
+              <a
+                href="https://docs.docker.com/get-docker/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                Get Docker
+              </a>
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 ">
             <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
               {isDockerInstalled ? (
-                <span className="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500" />
+                <span className="flex h-2 w-2 translate-y-1 rounded-full bg-green-500" />
               ) : (
                 <span className="flex h-2 w-2 translate-y-1 rounded-full bg-rose-500" />
               )}
@@ -59,7 +69,7 @@ function SettingsPage() {
           <CardContent className="grid gap-4">
             <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
               {isDockerContainerRunning ? (
-                <span className="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500" />
+                <span className="flex h-2 w-2 translate-y-1 rounded-full bg-green-500" />
               ) : (
                 <span className="flex h-2 w-2 translate-y-1 rounded-full bg-rose-500" />
               )}
