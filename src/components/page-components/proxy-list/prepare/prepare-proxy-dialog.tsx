@@ -334,6 +334,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
               <Button
                 size={"sm"}
                 onClick={handleGenerateCertificate}
+                variant={certExists ? "secondary" : "default"}
                 disabled={certExists || certGenerating}
               >
                 {certGenerating ? (
