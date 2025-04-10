@@ -5,6 +5,7 @@ import { SystemSetupProvider } from "@/components/page-components/setup-provider
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -20,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={notoSans.className}>
+      <body className={cn("overflow-hidden overscroll-none", notoSans.className)}>
         <SystemSetupProvider />
         <ThemeProvider
           attribute="class"
@@ -30,7 +31,9 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <main className="w-full p-6 relative bg-sidebar min-h-screen flex flex-col">{children}</main>
+            <main className="w-full p-6 relative bg-sidebar min-h-screen max-h-screen overflow-y-auto flex flex-col">
+              {children}
+            </main>
           </SidebarProvider>
           <Toaster />
         </ThemeProvider>
