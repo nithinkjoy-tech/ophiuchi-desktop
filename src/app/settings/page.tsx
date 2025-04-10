@@ -42,9 +42,9 @@ function SettingsPage() {
   return (
     <Card className="flex-1">
       <CardHeader>
-        <CardTitle>Settings</CardTitle>
+        <CardTitle className="flex h-6 items-center">Settings</CardTitle>
       </CardHeader>
-      <CardContent className="py-4 grid grid-cols-2 gap-4">
+      <CardContent className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Generated Files</CardTitle>

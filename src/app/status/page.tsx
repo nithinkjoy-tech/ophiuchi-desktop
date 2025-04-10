@@ -18,15 +18,16 @@ function SettingsPage() {
   return (
     <Card className="flex-1">
       <CardHeader>
-        <CardTitle>Status</CardTitle>
+        <CardTitle className="flex h-6 items-center">Status</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-4">
         <Card className="">
           <CardHeader>
             <CardTitle>Docker Intallation</CardTitle>
             <CardDescription>
-              Ophiuchi uses Docker + nginx to run the proxy server. If you don&apos;t have
-              Docker installed, you can install it from the link: 
+              Ophiuchi uses Docker + nginx to run the proxy server. If you
+              don&apos;t have Docker installed, you can install it from the
+              link:
               <a
                 href="https://docs.docker.com/get-docker/"
                 target="_blank"
@@ -51,8 +52,8 @@ function SettingsPage() {
                     : "Docker is not found on system."}
                 </p>
                 <p className="text-xs text-muted-foreground/70">
-                  A command <Code className="text-xs">docker --version</Code> is run to check if the
-                  Docker is installed.
+                  A command <Code className="text-xs">docker --version</Code> is
+                  run to check if the Docker is installed.
                 </p>
               </div>
             </div>
@@ -62,7 +63,8 @@ function SettingsPage() {
           <CardHeader>
             <CardTitle>Docker Container</CardTitle>
             <CardDescription>
-              Ophiuchi creates and runs a Docker container to run the proxy server.
+              Ophiuchi creates and runs a Docker container to run the proxy
+              server.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
