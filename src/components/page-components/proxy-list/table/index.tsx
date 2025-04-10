@@ -142,7 +142,7 @@ export default function ProxyListTable() {
 
   return (
     <>
-      <Card>
+      <Card className="flex-1">
         <CardHeader>
           <CardTitle className="flex h-6 items-center">
             {selectedGroup?.isNoGroup ? (

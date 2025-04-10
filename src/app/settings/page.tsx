@@ -9,17 +9,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Code from "@/components/ui/code";
-import { Separator } from "@/components/ui/separator";
 import { invoke } from "@tauri-apps/api/core";
-import { appDataDir } from "@tauri-apps/api/path";
+import { appDataDir, homeDir } from "@tauri-apps/api/path";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 
 function SettingsPage() {
   const [appDataDirPath, setAppDataDirPath] = useState<string | null>(null);
+  const [homeDirPath, setHomeDirPath] = useState<string | null>(null);
 
   useEffect(() => {
     appDataDir().then(setAppDataDirPath);
+    homeDir().then(setHomeDirPath);
   }, []);
 
   const onOpenFinder = useCallback(async () => {
@@ -28,26 +29,35 @@ function SettingsPage() {
     });
   }, [appDataDirPath]);
 
+  const onOpenBackupFiles = useCallback(async () => {
+    invoke("open_finder_or_explorer", {
+      path: `${homeDirPath}/ophiuchi.hosts.bak`,
+    });
+  }, [homeDirPath]);
+
   // if(!appDataDirPath) {
   //   return null;
   // }
 
   return (
-    <div className="">
-      <div className="">
-        <p>Settings</p>
-      </div>
-      <Separator />
-      <div className="p-4 grid gap-4">
+    <Card className="flex-1">
+      <CardHeader>
+        <CardTitle>Settings</CardTitle>
+      </CardHeader>
+      <CardContent className="py-4 grid grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Generated Files</CardTitle>
             <CardDescription className="space-y-2">
               <div>
-                Generated certificates, nginx configuration files are saved at:
+                Required files to run nginx proxy localhost servers, such as
+                self-signed certificates, nginx configuration files and
+                docker-compose.yml files can be found at:
               </div>
               <div className="">
-                <Code className="text-xs">{appDataDirPath}</Code>
+                <Code type="block" className="text-xs">
+                  {appDataDirPath}
+                </Code>
               </div>
             </CardDescription>
           </CardHeader>
@@ -56,6 +66,30 @@ function SettingsPage() {
               className="cursor-pointer underline text-xs"
               onClick={() => {
                 onOpenFinder();
+              }}
+            >
+              Show in Finder....
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Backup Files</CardTitle>
+            <CardDescription className="space-y-2">
+              <div>
+                Whenever Ophiuchi makes changes to the /etc/hosts file, a backup
+                is created at:
+              </div>
+              <div className="">
+                <Code className="text-xs">{`${homeDirPath}/ophiuchi.hosts.bak`}</Code>
+              </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex">
+            <p
+              className="cursor-pointer underline text-xs"
+              onClick={() => {
+                onOpenBackupFiles();
               }}
             >
               Show in Finder....
@@ -75,8 +109,8 @@ function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

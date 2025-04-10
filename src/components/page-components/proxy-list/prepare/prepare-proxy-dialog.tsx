@@ -26,6 +26,8 @@ import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { cn } from "@/lib/utils";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { hostsStore } from "@/stores/hosts-store";
+import { invoke } from "@tauri-apps/api/core";
+import { homeDir } from "@tauri-apps/api/path";
 import {
   AlertCircle,
   CheckCircle2,
@@ -34,7 +36,7 @@ import {
   ShieldAlert,
   Wrench,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface PrepareProxyDialogProps {
@@ -52,6 +54,7 @@ const STEP_DELAY = 500;
 
 export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   const [loading, setLoading] = useState(true);
+  const [backupPath, setBackupPath] = useState("");
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [everyStepCompleted, setEveryStepCompleted] = useState(false);
@@ -72,6 +75,18 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     certKeychainStore.getState();
   const { addHostToFile, checkHostExists } = hostsStore.getState();
 
+  const onOpenBackupFiles = useCallback(async () => {
+    invoke("open_finder_or_explorer", {
+      path: backupPath,
+    });
+  }, [backupPath]);
+
+  useEffect(() => {
+    homeDir().then((path) => {
+      setBackupPath(`${path}/ophiuchi.hosts.bak`);
+    });
+  }, []);
+
   const certificateStep = {
     title: "Generate Certificate",
     description: "Generate SSL certificate for proxy",
@@ -83,13 +98,28 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
       {
         step: 1,
         title: "Add to Keychain",
-        description: "Add SSL certificate to Keychain Access",
+        manualDescription:
+          "Copy and paste the following to add the certificate to Keychain Access.",
+        description: "Adds SSL certificate to Keychain Access",
         requiresPassword: false,
       },
       {
         step: 2,
         title: "Add to /etc/hosts",
-        description: "Add hostname entry to hosts file",
+        manualDescription:
+          "Copy and paste the following to create an entry in /etc/hosts file",
+        description: (
+          <>
+            Adds an entry to /etc/hosts file. Automatic backups are created{" "}
+            <span
+              onClick={onOpenBackupFiles}
+              className="underline cursor-pointer"
+            >
+              here
+            </span>
+            .
+          </>
+        ),
         requiresPassword: true,
       },
     ],
@@ -229,7 +259,9 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
       const success = await handleStepExecution(step);
 
       if (!success) {
-        toast.error(`Failed at step ${step}. Please check the error message and try again.`);
+        toast.error(
+          `Failed at step ${step}. Please check the error message and try again.`
+        );
         return;
       }
 
@@ -277,7 +309,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
           </DialogTitle>
           <DialogDescription>
             Setup your proxy by generating certificate and configuring system
-            settings
+            settings.
           </DialogDescription>
         </DialogHeader>
 
@@ -327,74 +359,75 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
               </TabsList>
 
               <TabsContent value="auto" className="py-4">
-                <div className="space-y-6">
-                  {steps.map(
-                    ({ step, title, description, requiresPassword }) => (
-                      <Card className="w-full" key={step}>
-                        <CardHeader>
-                          <CardTitle
-                            className={cn(
-                              "text-sm font-semibold flex gap-2 items-center",
-                              stepStatuses[step].error && "text-destructive",
-                              stepStatuses[step].completed &&
-                                "text-muted-foreground line-through"
-                            )}
-                          >
-                            {title}
-                            {stepStatuses[step].completed && (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            )}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-xs">
-                          <p
-                            className={cn(
-                              "text-muted-foreground",
-                              stepStatuses[step].error && "text-destructive",
-                              stepStatuses[step].completed && "line-through"
-                            )}
-                          >
-                            {description}
-                          </p>
-                          {requiresPassword &&
-                            !stepStatuses[step].completed && (
-                              <div className="mt-4 space-y-4">
-                                <div className="flex items-center gap-2">
-                                  <ShieldAlert className="h-4 w-4 text-yellow-500" />
-                                  <p className="text-xs text-muted-foreground">
-                                    System password is required for this step
-                                  </p>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {steps.map(
+                      ({ step, title, description, requiresPassword }) => (
+                        <Card className="w-full" key={step}>
+                          <CardHeader>
+                            <CardTitle
+                              className={cn(
+                                "text-sm font-semibold flex gap-2 items-center",
+                                stepStatuses[step].error && "text-destructive",
+                                stepStatuses[step].completed &&
+                                  "text-muted-foreground line-through"
+                              )}
+                            >
+                              {title}
+                              {stepStatuses[step].completed && (
+                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              )}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="text-xs">
+                            <p
+                              className={cn(
+                                "text-muted-foreground",
+                                stepStatuses[step].error && "text-destructive",
+                                stepStatuses[step].completed && "line-through"
+                              )}
+                            >
+                              {description}
+                            </p>
+                            {requiresPassword &&
+                              !stepStatuses[step].completed && (
+                                <div className="mt-4 space-y-4">
+                                  <div className="flex items-center gap-2">
+                                    <ShieldAlert className="h-4 w-4 text-yellow-500" />
+                                    <p className="text-xs text-muted-foreground">
+                                      System password is required for this step
+                                    </p>
+                                  </div>
+                                  <div className="grid gap-2">
+                                    <Label
+                                      htmlFor="password"
+                                      className="flex items-center gap-2 text-xs"
+                                    >
+                                      <KeyRound className="h-3.5 w-3.5" />
+                                      System Password
+                                    </Label>
+                                    <Input
+                                      id="password"
+                                      type="password"
+                                      value={password}
+                                      onChange={(e) =>
+                                        setPassword(e.target.value)
+                                      }
+                                      placeholder="Enter your system password"
+                                    />
+                                  </div>
                                 </div>
-                                <div className="grid gap-2">
-                                  <Label
-                                    htmlFor="password"
-                                    className="flex items-center gap-2 text-xs"
-                                  >
-                                    <KeyRound className="h-3.5 w-3.5" />
-                                    System Password
-                                  </Label>
-                                  <Input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) =>
-                                      setPassword(e.target.value)
-                                    }
-                                    placeholder="Enter your system password"
-                                  />
-                                </div>
+                              )}
+                            {stepStatuses[step].error && (
+                              <div className="mt-2 text-sm text-destructive">
+                                {stepStatuses[step].error}
                               </div>
                             )}
-                          {stepStatuses[step].error && (
-                            <div className="mt-2 text-sm text-destructive">
-                              {stepStatuses[step].error}
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  )}
-
+                          </CardContent>
+                        </Card>
+                      )
+                    )}
+                  </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="secondary" onClick={() => setOpen(false)}>
                       Cancel
@@ -430,14 +463,14 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <ShieldAlert className="h-3.5 w-3.5 text-yellow-500" />
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Follow these steps carefully. System password will be
                       required for some operations.
                     </p>
                   </div>
 
-                  <div className="space-y-6">
-                    {steps.map(({ step, title, description }) => (
+                  <div className="grid grid-cols-2 gap-4">
+                    {steps.map(({ step, title, manualDescription }) => (
                       <Card key={step}>
                         <CardHeader>
                           <CardTitle
@@ -453,13 +486,13 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                               <CheckCircle2 className="h-4 w-4 text-green-500" />
                             )}
                           </CardTitle>
-                          <CardDescription>{description}</CardDescription>
+                          <CardDescription>{manualDescription}</CardDescription>
                         </CardHeader>
                         <CardContent className="text-xs">
                           <div className="space-y-2">
                             <Code
                               type="block"
-                              className="text-sm whitespace-pre-wrap break-all max-w-full overflow-x-auto p-4"
+                              className="text-xs text-muted-foreground"
                             >
                               {manualCommands[step]}
                             </Code>

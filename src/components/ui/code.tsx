@@ -21,7 +21,7 @@ export default function Code({
 
   function blockStyle() {
     return type === "block"
-      ? "w-full border border-muted-foreground/20 rounded-md font-mono"
+      ? "w-full border border-muted-foreground/20 rounded-md font-mono p-1.5 break-all"
       : "px-1.5 py-0.5 rounded-md whitespace-break-spaces border-muted-foreground/20 border";
   }
 

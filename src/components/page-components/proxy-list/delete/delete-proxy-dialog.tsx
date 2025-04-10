@@ -295,62 +295,69 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
 
             <TabsContent value="auto" className="py-4">
               <div className="space-y-6">
-                {steps.map(({ step, title, description, requiresPassword }) => (
-                  <Card className="w-full" key={step}>
-                    <CardHeader>
-                      <CardTitle
-                        className={cn(
-                          "text-sm font-semibold flex gap-2 items-center",
-                          stepStatuses[step].error && "text-destructive",
-                          stepStatuses[step].completed &&
-                            "text-muted-foreground line-through"
-                        )}
-                      >
-                        {title}
-                        {stepStatuses[step].completed && (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-xs">
-                      <p
-                        className={cn(
-                          "text-muted-foreground",
-                          stepStatuses[step].error && "text-destructive",
-                          stepStatuses[step].completed && "line-through"
-                        )}
-                      >
-                        {description}
-                      </p>
-                      {requiresPassword && !stepStatuses[step].completed && (
-                        <div className="mt-4 space-y-4">
-                          <div className="flex items-center gap-2">
-                            <ShieldAlert className="h-4 w-4 text-yellow-500" />
-                            <p className="text-xs text-muted-foreground">
-                              System password is required for this step
-                            </p>
-                          </div>
-                          <div className="grid gap-2">
-                            <Label
-                              htmlFor="password"
-                              className="flex items-center gap-2 text-xs"
-                            >
-                              <KeyRound className="h-3.5 w-3.5" />
-                              System Password
-                            </Label>
-                            <Input
-                              id="password"
-                              type="password"
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              placeholder="Enter your system password"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                <div className="grid grid-cols-3 gap-4">
+                  {steps.map(
+                    ({ step, title, description, requiresPassword }) => (
+                      <Card className="w-full" key={step}>
+                        <CardHeader>
+                          <CardTitle
+                            className={cn(
+                              "text-sm font-semibold flex gap-2 items-center",
+                              stepStatuses[step].error && "text-destructive",
+                              stepStatuses[step].completed &&
+                                "text-muted-foreground line-through"
+                            )}
+                          >
+                            {title}
+                            {stepStatuses[step].completed && (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            )}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-xs">
+                          <p
+                            className={cn(
+                              "text-muted-foreground",
+                              stepStatuses[step].error && "text-destructive",
+                              stepStatuses[step].completed && "line-through"
+                            )}
+                          >
+                            {description}
+                          </p>
+                          {requiresPassword &&
+                            !stepStatuses[step].completed && (
+                              <div className="mt-4 space-y-4">
+                                <div className="flex items-center gap-2">
+                                  <ShieldAlert className="h-4 w-4 text-yellow-500" />
+                                  <p className="text-xs text-muted-foreground">
+                                    System password is required for this step
+                                  </p>
+                                </div>
+                                <div className="grid gap-2">
+                                  <Label
+                                    htmlFor="password"
+                                    className="flex items-center gap-2 text-xs"
+                                  >
+                                    <KeyRound className="h-3.5 w-3.5" />
+                                    System Password
+                                  </Label>
+                                  <Input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) =>
+                                      setPassword(e.target.value)
+                                    }
+                                    placeholder="Enter your system password"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                        </CardContent>
+                      </Card>
+                    )
+                  )}
+                </div>
 
                 <div className="flex justify-end gap-2">
                   <Button variant="secondary" onClick={() => setOpen(false)}>
@@ -395,7 +402,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
                     {steps.map(
                       ({
                         step,
@@ -423,7 +430,10 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                           </CardHeader>
                           <CardContent className="text-xs">
                             <div className="space-y-2">
-                              <Code type="block" className="p-2 text-xs">
+                              <Code
+                                type="block"
+                                className="text-xs text-muted-foreground"
+                              >
                                 {manualCommand(proxy)}
                               </Code>
                               <CopyCommandButton
@@ -434,22 +444,19 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                         </Card>
                       )
                     )}
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="secondary"
-                        onClick={() => setOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDeleteManually}
-                        disabled={!everyStepCompleted}
-                        className="min-w-[200px]"
-                      >
-                        Delete
-                      </Button>
-                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="secondary" onClick={() => setOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteManually}
+                      disabled={!everyStepCompleted}
+                      className="min-w-[200px]"
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </div>
               </div>

@@ -30,7 +30,7 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <main className="w-full p-6 relative">{children}</main>
+            <main className="w-full p-6 relative bg-sidebar min-h-screen flex flex-col">{children}</main>
           </SidebarProvider>
           <Toaster />
         </ThemeProvider>
