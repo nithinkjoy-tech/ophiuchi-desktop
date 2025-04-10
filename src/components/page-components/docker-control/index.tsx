@@ -117,13 +117,11 @@ export default function DockerControl({}: {}) {
         "--all",
       ]);
       command.on("close", (data) => {
-        // check lines
-        // check line output data and find if "ophiuchi-nginx" exist
         const linesFlattened = lines.join("\n");
         appendDockerProcessStream(`${linesFlattened}`, true);
         if (linesFlattened.includes("ophiuchi-nginx")) {
           appendDockerProcessStream(
-            `✅ Container exists. Ophiuchi will remove container...\n`
+            `✅ Container exists. Ophiuchi will stop and remove container...\n`
           );
           resolve(true);
         } else {
@@ -212,6 +210,9 @@ export default function DockerControl({}: {}) {
         appendDockerProcessStream(`${line}`, true)
       );
       const child = await command.spawn();
+      appendDockerProcessStream(
+        `👉 Stopping Container...\n`
+      );
       appendDockerProcessStream(
         `Command spawned with pid ${child.pid}\n`,
         true
