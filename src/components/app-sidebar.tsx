@@ -21,7 +21,6 @@ import { ICON_SIZE, ICON_STROKE_WIDTH } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import proxyListStore from "@/stores/proxy-list";
 import systemStatusStore from "@/stores/system-status";
-import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import {
   CheckCircle,
   CircleAlert,
@@ -33,10 +32,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import packageJson from "../../package.json";
 import DiscordIcon from "./icons/discord";
 import { AddProxyGroupDialog } from "./page-components/proxy-list/add-new/group";
 import { Badge } from "./ui/badge";
-import { Tooltip, TooltipContent } from "./ui/tooltip";
 
 // Menu items.
 const appItems = [
@@ -77,6 +76,25 @@ const helpItems = [
     badgeText: "Feedback",
   },
 ];
+
+function DockerStatus() {
+  const { isCheckDone, isDockerInstalled, isDockerContainerRunning } =
+    systemStatusStore();
+
+  if (!isCheckDone) {
+    return <LoaderCircle className="animate-spin w-4 h-4" />;
+  }
+
+  if (!isDockerInstalled) {
+    return <CircleAlert className="text-red-400 w-4 h-4" />;
+  }
+
+  if (!isDockerContainerRunning) {
+    return <CheckCircle className="text-gray-400 w-4 h-4" />;
+  }
+
+  return <CheckCircle className="text-green-500 w-4 h-4" />;
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -162,36 +180,7 @@ export function AppSidebar() {
                 </Link>
               </SidebarMenuButton>
               <SidebarMenuBadge>
-                {isCheckDone ? (
-                  <>
-                    {isDockerInstalled ? (
-                      <CheckCircle
-                        size={ICON_SIZE}
-                        strokeWidth={ICON_STROKE_WIDTH}
-                        className="text-green-500"
-                      />
-                    ) : (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <CircleAlert
-                            size={ICON_SIZE}
-                            strokeWidth={ICON_STROKE_WIDTH}
-                            className="text-red-400"
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" sideOffset={12}>
-                          <p>Docker installation is not detected.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </>
-                ) : (
-                  <LoaderCircle
-                    className=" animate-spin text-muted-foreground"
-                    size={ICON_SIZE}
-                    strokeWidth={ICON_STROKE_WIDTH}
-                  />
-                )}
+                <DockerStatus />
               </SidebarMenuBadge>
             </SidebarMenuItem>
             {appItems.map((item) => {
@@ -239,7 +228,11 @@ export function AppSidebar() {
         </SidebarGroupContent>
         <SidebarGroup />
       </SidebarContent>
-      <SidebarFooter></SidebarFooter>
+      <SidebarFooter>
+        <div className="text-xs text-muted-foreground">
+          v{packageJson.version}
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }

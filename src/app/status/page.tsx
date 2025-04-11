@@ -46,14 +46,10 @@ function SettingsPage() {
                 <span className="flex h-2 w-2 translate-y-1 rounded-full bg-rose-500" />
               )}
               <div className="space-y-2">
-                <p className="text-sm font-medium leading-none">
+                <p className="text-xs font-medium leading-none">
                   {isDockerInstalled
                     ? "Docker found on system."
                     : "Docker is not found on system."}
-                </p>
-                <p className="text-xs text-muted-foreground/70">
-                  A command <Code className="text-xs">docker --version</Code> is
-                  run to check if the Docker is installed.
                 </p>
               </div>
             </div>
@@ -75,7 +71,7 @@ function SettingsPage() {
                 <span className="flex h-2 w-2 translate-y-1 rounded-full bg-rose-500" />
               )}
               <div className="space-y-2">
-                <p className="text-sm font-medium leading-none">
+                <p className="text-xs font-medium leading-none">
                   {isDockerContainerRunning
                     ? "Container is running."
                     : "Container is not running."}
