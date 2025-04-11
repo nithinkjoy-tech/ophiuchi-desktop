@@ -232,41 +232,41 @@ export default function ProxyListTable() {
               })}
             </TableBody>
           </Table>
+          {selectedGroup?.isNoGroup ? null : (
+            <div className="text-right pt-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button type="button" variant={"outline"} size="sm">
+                    <span className="text-muted-foreground">Delete Group</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="">
+                  <DialogHeader>
+                    <DialogTitle>Delete Group</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete this group? <br />
+                      This cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Code>{selectedGroup?.name}</Code>
+                  <DialogFooter>
+                    <Button
+                      variant={"destructive"}
+                      onClick={() => {
+                        if (selectedGroup) {
+                          deleteGroup(selectedGroup?.id);
+                        }
+                      }}
+                    >
+                      Yes, delete.
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
         </CardContent>
       </Card>
-      {selectedGroup?.isNoGroup ? null : (
-        <div className="text-right pt-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button type="button" variant={"outline"} size="sm">
-                <span className="text-muted-foreground">Delete Group</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="">
-              <DialogHeader>
-                <DialogTitle>Delete Group</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to delete this group? <br />
-                  This cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <Code>{selectedGroup?.name}</Code>
-              <DialogFooter>
-                <Button
-                  variant={"destructive"}
-                  onClick={() => {
-                    if (selectedGroup) {
-                      deleteGroup(selectedGroup?.id);
-                    }
-                  }}
-                >
-                  Yes, delete.
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      )}
     </>
   );
 }

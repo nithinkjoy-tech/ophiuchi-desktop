@@ -18,6 +18,10 @@ const config = {
       },
     },
     extend: {
+      fontSize: {
+        sm: "0.825rem",
+        xs: "0.70rem",
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
