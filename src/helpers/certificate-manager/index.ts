@@ -51,6 +51,21 @@ export class CertificateManager {
     });
   }
 
+  async cleanUp() {
+    if (await exists(`conf/conf.d`, {
+      baseDir: BaseDirectory.AppData,
+    })) {
+      await remove(`conf/conf.d`, {
+        baseDir: BaseDirectory.AppData,
+        recursive: true,
+      });
+      await mkdir(`conf/conf.d`, {
+        baseDir: BaseDirectory.AppData,
+        recursive: true,
+      });
+    }
+  }
+
   async generateNginxConfigurationFiles(hostname: string, port: number) {
     // save to file
     if (
@@ -58,15 +73,6 @@ export class CertificateManager {
         baseDir: BaseDirectory.AppData,
       }))
     ) {
-      await mkdir(`conf/conf.d`, {
-        baseDir: BaseDirectory.AppData,
-        recursive: true,
-      });
-    } else {
-      await remove(`conf/conf.d`, {
-        baseDir: BaseDirectory.AppData,
-        recursive: true,
-      });
       await mkdir(`conf/conf.d`, {
         baseDir: BaseDirectory.AppData,
         recursive: true,

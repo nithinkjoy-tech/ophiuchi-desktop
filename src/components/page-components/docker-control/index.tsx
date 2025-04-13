@@ -19,7 +19,7 @@ import { appDataDir, resolveResource } from "@tauri-apps/api/path";
 import {
   BaseDirectory,
   readTextFile,
-  writeTextFile,
+  writeTextFile
 } from "@tauri-apps/plugin-fs";
 import { Command } from "@tauri-apps/plugin-shell";
 import { ChevronDownIcon, CircleStop, LogsIcon, RotateCcw } from "lucide-react";
@@ -265,6 +265,9 @@ export default function DockerControl({}: {}) {
     const toastId = toast.loading(
       `Generating ${proxyList.length} nginx configuration files...`
     );
+
+    await certMgr.cleanUp();
+
     const nginxGen = proxyList.map((proxy) => {
       return certMgr.generateNginxConfigurationFiles(
         proxy.hostname,
