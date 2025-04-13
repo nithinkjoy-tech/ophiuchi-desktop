@@ -27,12 +27,12 @@ function SettingsPage() {
             <CardDescription>
               Ophiuchi uses Docker + nginx to run the proxy server. If you
               don&apos;t have Docker installed, you can install it from the
-              link:
+              official website:
               <a
                 href="https://docs.docker.com/get-docker/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline ml-2"
+                className="underline ml-1"
               >
                 Get Docker
               </a>
