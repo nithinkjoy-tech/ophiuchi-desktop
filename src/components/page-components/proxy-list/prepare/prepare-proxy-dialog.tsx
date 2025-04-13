@@ -26,6 +26,7 @@ import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { cn } from "@/lib/utils";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { hostsStore } from "@/stores/hosts-store";
+import proxyListStore from "@/stores/proxy-list";
 import { invoke } from "@tauri-apps/api/core";
 import { homeDir } from "@tauri-apps/api/path";
 import {
@@ -71,9 +72,9 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   });
 
   const certManager = CertificateManager.shared();
-  const { generateManualCommand, addCertToKeychain } =
-    certKeychainStore.getState();
-  const { addHostToFile, checkHostExists } = hostsStore.getState();
+  const { generateManualCommand, addCertToKeychain } = certKeychainStore();
+  const { addHostToFile, checkHostExists } = hostsStore();
+  const { updateProxyCanLaunch, proxyList } = proxyListStore();
 
   const onOpenBackupFiles = useCallback(async () => {
     invoke("open_finder_or_explorer", {
@@ -239,6 +240,13 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     setEveryStepCompleted(everyStepCompleted);
   }, [stepStatuses, steps]);
 
+  useEffect(() => {
+    if (everyStepCompleted) {
+      console.log(`everyStepCompleted`, everyStepCompleted);
+      updateProxyCanLaunch(proxy, everyStepCompleted);
+    }
+  }, [everyStepCompleted]);
+
   const handleAutoSetup = async () => {
     if (everyStepCompleted) {
       setOpen(false);
@@ -308,8 +316,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
             <Wrench className="h-5 w-5 text-primary" />
             Setup {proxy.hostname}
           </DialogTitle>
-          <DialogDescription>
-          </DialogDescription>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
 
         <div className="w-full space-y-6">

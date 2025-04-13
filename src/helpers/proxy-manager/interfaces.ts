@@ -3,6 +3,7 @@ export type IProxyData = {
   hostname: string;
   port: number;
   createdAt: string;
+  canLaunch?: boolean;
 };
 
 export type IProxyGroupData = {

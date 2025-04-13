@@ -43,12 +43,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  IProxyData
-} from "@/helpers/proxy-manager/interfaces";
+import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { cn } from "@/lib/utils";
 import proxyListStore from "@/stores/proxy-list";
-import { Bookmark, TriangleAlertIcon } from "lucide-react";
+import { Bookmark, CheckIcon, TriangleAlertIcon, XIcon } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import DockerControl from "../../docker-control";
 
@@ -109,16 +107,15 @@ function GroupManageDropdown({ item }: { item: IProxyData }) {
 }
 
 export default function ProxyListTable() {
-  const { load, proxyList, selectedGroup, deleteProxyFromList, deleteGroup } =
+  const { proxyList, selectedGroup, deleteProxyFromList, deleteGroup } =
     proxyListStore();
 
   const [loaded, setLoaded] = useState(false);
 
   const prepareConfigPage = useCallback(async () => {
     console.log("prepareConfigPage");
-    load();
     setLoaded(true);
-  }, [load]);
+  }, []);
 
   useEffect(() => {
     prepareConfigPage();
@@ -202,6 +199,7 @@ export default function ProxyListTable() {
               <TableRow>
                 <TableHead className="w-[400px]">Hostname</TableHead>
                 <TableHead>Application Port</TableHead>
+                <TableHead>Ready to Launch</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -242,13 +240,17 @@ export default function ProxyListTable() {
                       </div>
                     </TableCell>
 
-                    {/* <TableCell></TableCell> */}
+                    <TableCell>
+                      {proxyItem.canLaunch ? (
+                        <CheckIcon className="w-3 h-3 text-green-500" />
+                      ) : (
+                        <XIcon className="w-3 h-3 text-red-500" />
+                      )}
+                    </TableCell>
 
                     <TableCell className="flex gap-2 justify-end items-center">
                       <PrepareButtons item={proxyItem} />
-                      <GroupManageDropdown
-                        item={proxyItem}
-                      />
+                      <GroupManageDropdown item={proxyItem} />
                       {selectedGroup?.isNoGroup && (
                         <DeleteProxyDialog
                           proxy={proxyItem}

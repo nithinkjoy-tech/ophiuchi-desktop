@@ -19,7 +19,7 @@ import { appDataDir, resolveResource } from "@tauri-apps/api/path";
 import {
   BaseDirectory,
   readTextFile,
-  writeTextFile
+  writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { Command } from "@tauri-apps/plugin-shell";
 import { ChevronDownIcon, CircleStop, LogsIcon, RotateCcw } from "lucide-react";
@@ -53,7 +53,8 @@ const ButtonWithDropdown = forwardRef<
         size="sm"
         onClick={isDockerContainerRunning ? onStop : onStart}
         disabled={
-          proxyList.length === 0 || proxyListHasDuplicatePorts || disabled
+          (proxyList.length === 0 || proxyListHasDuplicatePorts || disabled) &&
+          !isDockerContainerRunning
         }
       >
         <DockerIcon className="w-4 h-4" />
@@ -66,7 +67,10 @@ const ButtonWithDropdown = forwardRef<
             className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
             size="icon-sm"
             aria-label="Options"
-            disabled={proxyList.length === 0 || proxyListHasDuplicatePorts || disabled}
+            disabled={
+              (proxyList.length === 0 || proxyListHasDuplicatePorts || disabled) &&
+              !isDockerContainerRunning
+            }
           >
             <ChevronDownIcon size={16} aria-hidden="true" />
           </Button>
@@ -262,24 +266,30 @@ export default function DockerControl({}: {}) {
     }
 
     const certMgr = CertificateManager.shared();
-    const toastId = toast.loading(
-      `Generating ${proxyList.length} nginx configuration files...`
+    await certMgr.cleanUp();
+    const canLaunchProxyList = proxyList.filter(
+      (proxy) => proxy.canLaunch === true
     );
 
-    await certMgr.cleanUp();
-
-    const nginxGen = proxyList.map((proxy) => {
+    const toastId = toast.loading(
+      `Generating ${canLaunchProxyList.length} nginx configuration files...`
+    );
+    const nginxGen = canLaunchProxyList.map((proxy) => {
       return certMgr.generateNginxConfigurationFiles(
         proxy.hostname,
         proxy.port
       );
     });
+    console.log(`nginxGen: ${nginxGen}`);
 
     // generate nginx configuration files
     await Promise.all(nginxGen);
-    toast.success(`Generated ${proxyList.length} nginx configuration files`, {
-      id: toastId,
-    });
+    toast.success(
+      `Generated ${canLaunchProxyList.length} nginx configuration files`,
+      {
+        id: toastId,
+      }
+    );
 
     const resourcePath = await resolveResource(
       "bundle/templates/docker-compose.yml.template"
@@ -312,7 +322,6 @@ export default function DockerControl({}: {}) {
         toast.success(`Starting container successfully finished!`, {
           id: toastId2,
         });
-        
       } else {
         appendDockerProcessStream(
           `🚨 Starting container failed with code ${data.code} and signal ${data.signal}\n`

@@ -14,6 +14,7 @@ interface ProxyListStore {
   selectedGroup: IProxyGroupData | null;
   load(): void;
   setProxyList: (proxyList: IProxyData[]) => void;
+  updateProxyCanLaunch: (proxy: IProxyData, canLaunch: boolean) => void;
   deleteProxyFromList: (proxy: IProxyData) => void;
   addProxyItem: (data: IProxyData, group?: IProxyGroupData) => void;
   addGroup: (groupName: string) => void;
@@ -45,9 +46,11 @@ const proxyListStore = create<ProxyListStore>()(
         const mgr = ProxyManager.sharedManager();
         const list = await mgr.getProxies();
         const gList = await mgr.getGroups();
+        console.log(`load`, list, gList);
         set({
           groupList: gList,
           totalProxyList: list,
+          proxyList: list,
         });
         // if selectedGroup == null then set default group
         let selectedGroup = get().selectedGroup;
@@ -58,26 +61,32 @@ const proxyListStore = create<ProxyListStore>()(
         }
       },
       setProxyList: (proxyList: IProxyData[]) => set({ proxyList }),
+      updateProxyCanLaunch: async (proxy: IProxyData, canLaunch: boolean) => {
+        console.log(`updateProxyCanLaunch`, proxy, canLaunch);
+        const _totalProxyList = get().totalProxyList;
+        const index = _totalProxyList.findIndex(
+          (el) => el.hostname === proxy.hostname
+        );
+        _totalProxyList[index].canLaunch = canLaunch;
+        set({ totalProxyList: _totalProxyList });
+      },
       deleteProxyFromList: async (proxy: IProxyData) => {
-        const mgr = ProxyManager.sharedManager();
-        const _proxyList = await mgr.getProxies();
-        const _groupList = await mgr.getGroups();
+        const _proxyList = get().totalProxyList;
+        const _groupList = get().groupList;
         const index = _proxyList.findIndex(
           (el) => el.hostname === proxy.hostname
         );
         _proxyList.splice(index, 1);
-        await mgr.saveProxies(_proxyList);
         for (const group of _groupList) {
           group.includedHosts = group.includedHosts.filter(
             (el) => el !== proxy.hostname
           );
         }
-        await mgr.saveGroups(_groupList);
         toast.success("Proxy Deleted");
         set({
-          proxyList: _proxyList,
-          totalProxyList: _proxyList,
-          groupList: _groupList,
+          proxyList: [..._proxyList],
+          totalProxyList: [..._proxyList],
+          groupList: [..._groupList],
         });
       },
       addGroup: async (groupName: string) => {
@@ -89,59 +98,49 @@ const proxyListStore = create<ProxyListStore>()(
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-        const mgr = ProxyManager.sharedManager();
-        const _groupList = await mgr.getGroups();
-        const _proxyList = await mgr.getProxies();
-        _groupList.push(newGroupData);
-        set({ groupList: _groupList, selectedGroup: newGroupData });
-        const filteredList = _proxyList.filter((el) =>
+        const _groupList = get().groupList;
+        set({
+          groupList: [..._groupList, newGroupData],
+          selectedGroup: newGroupData,
+        });
+        const filteredList = get().totalProxyList.filter((el) =>
           newGroupData.includedHosts.find((e) => e === el.hostname)
         );
         set({ proxyList: filteredList });
         toast.success("Group Created");
-        mgr.saveGroups(_groupList);
       },
       updateGroup: async (group: IProxyGroupData) => {
-        const mgr = ProxyManager.sharedManager();
-        const _groupList = await mgr.getGroups();
+        const _groupList = get().groupList;
         const groupIndex = _groupList.findIndex((el) => el.id === group.id);
         group.updatedAt = new Date().toISOString();
         _groupList[groupIndex] = group;
-        await mgr.saveGroups(_groupList);
         toast.success("Group Updated");
-        set({ groupList: _groupList });
+        set({ groupList: [..._groupList] });
       },
       deleteGroup: async (groupId: string) => {
-        const mgr = ProxyManager.sharedManager();
-        const _groupList = await mgr.getGroups();
+        const _groupList = get().groupList;
         const index = _groupList.findIndex((el) => el.id === groupId);
         _groupList.splice(index, 1);
-        set({ groupList: _groupList });
+        set({ groupList: [..._groupList] });
         get().setSelectedGroup(_groupList[0]);
         toast.success("Group Deleted");
-        await mgr.saveGroups(_groupList);
       },
       addProxyItem: async (data: IProxyData, group?: IProxyGroupData) => {
-        const mgr = ProxyManager.sharedManager();
-        const _proxyList = await mgr.getProxies();
+        const _proxyList = get().totalProxyList;
         if (_proxyList.find((e: IProxyData) => e.hostname === data.hostname)) {
-          // already exists
+          // same hostname already exists
+          toast.error("Proxy with same hostname already exists");
           return;
         }
         // add to proxy list
         _proxyList.push(data);
-        // save proxy list
-        await mgr.saveProxies(_proxyList);
         set({
-          proxyList: _proxyList,
-          totalProxyList: _proxyList,
+          totalProxyList: [..._proxyList],
         });
         toast.success("Proxy Created");
       },
       addProxyToGroup: async (proxy: IProxyData, group: IProxyGroupData) => {
-        const mgr = ProxyManager.sharedManager();
-        const _groupList = await mgr.getGroups();
-        const _proxyList = await mgr.getProxies();
+        const _groupList = get().groupList;
         const filterGroup = _groupList.find((el) => el.id === group.id);
         if (!filterGroup) {
           toast.error("Group not found");
@@ -153,21 +152,22 @@ const proxyListStore = create<ProxyListStore>()(
           return;
         }
         filterGroup!.includedHosts.push(proxy.hostname);
-        await mgr.saveGroups(_groupList);
         if (filterGroup.id === get().selectedGroup?.id) {
-          const filteredList = filterProxyFromGroup(_proxyList, filterGroup);
+          const filteredList = filterProxyFromGroup(
+            get().totalProxyList,
+            filterGroup
+          );
           set({ proxyList: filteredList });
         }
-        set({ groupList: _groupList });
+        set({ groupList: [..._groupList] });
+        console.log(`addProxyToGroup`, proxy, _groupList);
         toast.success("Proxy Added to Group");
       },
       removeProxyFromGroup: async (
         proxy: IProxyData,
         group: IProxyGroupData
       ) => {
-        const mgr = ProxyManager.sharedManager();
-        const _groupList = await mgr.getGroups();
-        const _proxyList = await mgr.getProxies();
+        const _groupList = get().groupList;
         const filterGroup = _groupList.find((el) => el.id === group.id);
         if (!filterGroup) {
           toast.error("Group not found");
@@ -177,12 +177,14 @@ const proxyListStore = create<ProxyListStore>()(
           (el) => el === proxy.hostname
         );
         filterGroup!.includedHosts.splice(index, 1);
-        await mgr.saveGroups(_groupList);
         if (filterGroup.id === get().selectedGroup?.id) {
-          const filteredList = filterProxyFromGroup(_proxyList, filterGroup);
+          const filteredList = filterProxyFromGroup(
+            get().totalProxyList,
+            filterGroup
+          );
           set({ proxyList: filteredList });
         }
-        set({ groupList: _groupList });
+        set({ groupList: [..._groupList] });
         toast.success("Proxy Removed from Group", {
           description: "Click Undo to add it back.",
           action: {
@@ -208,6 +210,39 @@ proxyListStore.subscribe(
       const filteredList = filterProxyFromGroup(totalProxyList, selectedGroup);
       proxyListStore.setState({ proxyList: filteredList });
     }
+  }
+);
+
+proxyListStore.subscribe(
+  (state) => state.totalProxyList,
+  async (totalProxyList) => {
+    const get = proxyListStore.getState();
+    const mgr = ProxyManager.sharedManager();
+    await mgr.saveProxies(totalProxyList);
+    if (get.selectedGroup) {
+      const filteredList = filterProxyFromGroup(
+        totalProxyList,
+        get.selectedGroup
+      );
+      proxyListStore.setState({ proxyList: filteredList });
+    }
+    console.log(`totalProxyList saved`, totalProxyList);
+  }
+);
+
+proxyListStore.subscribe(
+  (state) => state.proxyList,
+  async (proxyList) => {
+    console.log(`proxyList updated`, proxyList);
+  }
+);
+
+proxyListStore.subscribe(
+  (state) => state.groupList,
+  async (groupList) => {
+    const mgr = ProxyManager.sharedManager();
+    await mgr.saveGroups(groupList);
+    console.log(`groupList saved`, groupList);
   }
 );
 
