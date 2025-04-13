@@ -1,4 +1,4 @@
-import { resolveResource } from "@tauri-apps/api/path";
+import { appDataDir, resolveResource } from "@tauri-apps/api/path";
 import {
   BaseDirectory,
   exists,
@@ -12,11 +12,17 @@ import * as selfsigned from "selfsigned";
 let instance: CertificateManager | null = null;
 
 export class CertificateManager {
+  private appDataDir: string = "";
+
   async deleteCertificateFiles(hostname: string) {
     await remove(`cert/${hostname}`, {
       baseDir: BaseDirectory.AppData,
       recursive: true,
     });
+  }
+
+  getManualCommandToDeleteCertificate(hostname: string) {
+    return `rm -rf "${this.appDataDir}/cert/${hostname}"`;
   }
 
   async deleteAllNginxConfigurationFiles() {
@@ -37,6 +43,27 @@ export class CertificateManager {
     await remove(`conf/conf.d/${hostname}.conf`, {
       baseDir: BaseDirectory.AppData,
     });
+  }
+
+  async checkCertificateExists(hostname: string) {
+    return await exists(`cert/${hostname}/cert.pem`, {
+      baseDir: BaseDirectory.AppData,
+    });
+  }
+
+  async cleanUp() {
+    if (await exists(`conf/conf.d`, {
+      baseDir: BaseDirectory.AppData,
+    })) {
+      await remove(`conf/conf.d`, {
+        baseDir: BaseDirectory.AppData,
+        recursive: true,
+      });
+      await mkdir(`conf/conf.d`, {
+        baseDir: BaseDirectory.AppData,
+        recursive: true,
+      });
+    }
   }
 
   async generateNginxConfigurationFiles(hostname: string, port: number) {
@@ -83,12 +110,18 @@ export class CertificateManager {
     // replace all occurences of {PORT} with port
     const nginxConfigWithPort = nginxConfig.replace(/{PORT}/g, port.toString());
 
+    // write nginx config to file
     await writeTextFile(`conf/conf.d/${hostname}.conf`, nginxConfigWithPort, {
       baseDir: BaseDirectory.AppData,
     });
   }
   constructor() {
     // init
+    this.init();
+  }
+
+  async init() {
+    this.appDataDir = await appDataDir();
   }
 
   public static shared(): CertificateManager {

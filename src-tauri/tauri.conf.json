@@ -51,7 +51,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM3NjRGMUVBRkVDMUMxMApSV1FRSE95dkhrOTJBejRlcVRBMzV0ajFkR1UvVnpPRHI1ekNYVHp6VUdHYjZOYUhYa2p2UVVhRgo=",
       "endpoints": [
-        "https://release.ophiuchi.dev/stable/update-check-v1/latest.json"
+        "https://ophiuchi.dev/stable/update-check-v2/latest"
       ]
     }
   },
@@ -59,12 +59,12 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 1000,
+        "height": 768,
         "resizable": true,
         "title": "Ophiuchi",
-        "width": 1200,
+        "width": 1280,
         "minWidth": 1024,
-        "minHeight": 768,
+        "minHeight": 640,
         "useHttpsScheme": true
       }
     ],
