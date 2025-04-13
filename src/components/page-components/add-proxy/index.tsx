@@ -140,6 +140,9 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                         })}
                         required={true}
                         onChange={(e) => {
+                          if (e.target.value.startsWith("0")) {
+                            e.target.value = e.target.value.slice(1);
+                          }
                           field.onChange(e);
                           updateCanSubmit();
                         }}

@@ -23,7 +23,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { Command } from "@tauri-apps/plugin-shell";
 import { ChevronDownIcon, CircleStop, LogsIcon, RotateCcw } from "lucide-react";
-import { forwardRef, useCallback, useState } from "react";
+import { forwardRef, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import DockerLogModal from "../proxy-list/docker-log";
 
@@ -68,7 +68,9 @@ const ButtonWithDropdown = forwardRef<
             size="icon-sm"
             aria-label="Options"
             disabled={
-              (proxyList.length === 0 || proxyListHasDuplicatePorts || disabled) &&
+              (proxyList.length === 0 ||
+                proxyListHasDuplicatePorts ||
+                disabled) &&
               !isDockerContainerRunning
             }
           >
@@ -110,6 +112,14 @@ export default function DockerControl({}: {}) {
   const [dockerModalOpen, setDockerModalOpen] = useState(false);
   const [detailedLog, setDetailedLog] = useState<any>("");
   const [isManipulatingDocker, setIsManipulatingDocker] = useState(false);
+  const [hasLaunchableProxies, setHasLaunchableProxies] = useState(false);
+
+  useEffect(() => {
+    const hasLaunchableProxies = proxyList.some(
+      (proxy) => proxy.canLaunch === true
+    );
+    setHasLaunchableProxies(hasLaunchableProxies);
+  }, [proxyList]);
 
   const appendDockerProcessStream = useCallback(
     (line: any, isDetail: boolean = false) => {
@@ -215,6 +225,14 @@ export default function DockerControl({}: {}) {
             resolve();
             toast.success(`Container stopped and removed successfully!`, {
               id: toastId,
+              description: "Click Show Logs to view the logs.",
+              action: {
+                label: "Show Logs",
+                onClick: () => {
+                  toast.dismiss();
+                  setDockerModalOpen(true);
+                },
+              },
             });
           } catch (error) {
             // log output
@@ -224,6 +242,14 @@ export default function DockerControl({}: {}) {
             resolve();
             toast.error(`Container stop and remove failed due to timeout!`, {
               id: toastId,
+              description: "Click Show Logs to view the logs.",
+              action: {
+                label: "Show Logs",
+                onClick: () => {
+                  toast.dismiss();
+                  setDockerModalOpen(true);
+                },
+              },
             });
           } finally {
             setIsManipulatingDocker(false);
@@ -236,6 +262,14 @@ export default function DockerControl({}: {}) {
           resolve();
           toast.error(`Container stop and remove failed!`, {
             id: toastId,
+            description: "Click Show Logs to view the logs.",
+            action: {
+              label: "Show Logs",
+              onClick: () => {
+                toast.dismiss();
+                setDockerModalOpen(true);
+              },
+            },
           });
         }
       });
@@ -271,9 +305,9 @@ export default function DockerControl({}: {}) {
       (proxy) => proxy.canLaunch === true
     );
 
-    const toastId = toast.loading(
-      `Generating ${canLaunchProxyList.length} nginx configuration files...`
-    );
+    // const toastId = toast.loading(
+    //   `Generating ${canLaunchProxyList.length} nginx configuration files...`
+    // );
     const nginxGen = canLaunchProxyList.map((proxy) => {
       return certMgr.generateNginxConfigurationFiles(
         proxy.hostname,
@@ -284,12 +318,12 @@ export default function DockerControl({}: {}) {
 
     // generate nginx configuration files
     await Promise.all(nginxGen);
-    toast.success(
-      `Generated ${canLaunchProxyList.length} nginx configuration files`,
-      {
-        id: toastId,
-      }
-    );
+    // toast.success(
+    //   `Generated ${canLaunchProxyList.length} nginx configuration files`,
+    //   {
+    //     id: toastId,
+    //   }
+    // );
 
     const resourcePath = await resolveResource(
       "bundle/templates/docker-compose.yml.template"
@@ -298,7 +332,10 @@ export default function DockerControl({}: {}) {
     console.log(`resourcePath: ${resourcePath}`);
     const dockerComposeTemplate = await readTextFile(resourcePath);
 
-    const toastId2 = toast.loading(`Starting container...`);
+    const toastId2 = toast.loading(`Starting container...`, {
+      description:
+        "If you're launching for the first time, it may take a while.",
+    });
 
     appendDockerProcessStream(`👉 Starting container...\n`);
     await writeTextFile(`docker-compose.yml`, dockerComposeTemplate, {
@@ -321,6 +358,14 @@ export default function DockerControl({}: {}) {
         await updateDockerContainerStatus();
         toast.success(`Starting container successfully finished!`, {
           id: toastId2,
+          description: "Click Show Logs to view the logs.",
+          action: {
+            label: "Show Logs",
+            onClick: () => {
+              toast.dismiss();
+              setDockerModalOpen(true);
+            },
+          },
         });
       } else {
         appendDockerProcessStream(
@@ -328,6 +373,14 @@ export default function DockerControl({}: {}) {
         );
         toast.error(`Starting container failed!`, {
           id: toastId2,
+          description: "Click Show Logs to view the logs.",
+          action: {
+            label: "Show Logs",
+            onClick: () => {
+              toast.dismiss();
+              setDockerModalOpen(true);
+            },
+          },
         });
       }
       setIsManipulatingDocker(false);
@@ -337,6 +390,14 @@ export default function DockerControl({}: {}) {
       appendDockerProcessStream(`command error: "${error}"\n`, true);
       toast.error(`Starting container failed!`, {
         id: toastId2,
+        description: "Click Show Logs to view the logs.",
+        action: {
+          label: "Show Logs",
+          onClick: () => {
+            toast.dismiss();
+            setDockerModalOpen(true);
+          },
+        },
       });
     });
     command.stdout.on("data", (line) =>
@@ -354,9 +415,9 @@ export default function DockerControl({}: {}) {
       <Tooltip>
         <TooltipTrigger asChild>
           <ButtonWithDropdown
-            disabled={isManipulatingDocker}
+            disabled={isManipulatingDocker || !hasLaunchableProxies}
             onStart={() => {
-              if (proxyList.length === 0) {
+              if (!hasLaunchableProxies || isManipulatingDocker) {
                 return;
               }
               startDocker();
@@ -365,7 +426,7 @@ export default function DockerControl({}: {}) {
               stopDocker();
             }}
             onRestart={() => {
-              if (proxyList.length === 0) {
+              if (!hasLaunchableProxies || isManipulatingDocker) {
                 return;
               }
               startDocker();
