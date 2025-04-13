@@ -1,7 +1,12 @@
-import { DockerContainerStatus } from "@/hooks/use-docker";
 import { appDataDir } from "@tauri-apps/api/path";
 import { Command } from "@tauri-apps/plugin-shell";
 import { create } from "zustand";
+
+export interface DockerContainerStatus {
+  containerInfo: IContainer | null;
+  isRunning: boolean;
+  error?: string;
+}
 
 export interface IContainer {
   State: string;
@@ -89,10 +94,10 @@ const systemStatusStore = create<SystemStatusStore>((set, get) => ({
         (container: any) =>
           container.State === "running" && container.Name === "ophiuchi-nginx"
       );
-      
 
       return {
-        containerInfo: runningContainers.length > 0 ? runningContainers[0] : null,
+        containerInfo:
+          runningContainers.length > 0 ? runningContainers[0] : null,
         isRunning: runningContainers.length > 0,
       };
     } catch (error) {
@@ -103,7 +108,7 @@ const systemStatusStore = create<SystemStatusStore>((set, get) => ({
           error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
-  }
+  },
 }));
 
 export default systemStatusStore;
