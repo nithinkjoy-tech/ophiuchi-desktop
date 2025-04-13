@@ -285,7 +285,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TriangleAlertIcon className="h-5 w-5 text-destructive" />
-            Delete Proxy - {proxy.nickname}
+            Delete {proxy.hostname}
           </DialogTitle>
           <DialogDescription>
             You can proceed to delete this proxy automatically or manually.

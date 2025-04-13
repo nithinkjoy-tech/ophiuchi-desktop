@@ -25,6 +25,7 @@ import {
   CheckCircle,
   CircleAlert,
   Computer,
+  ExternalLinkIcon,
   HelpCircle,
   List,
   LoaderCircle,
@@ -67,12 +68,13 @@ const helpItems = [
     url: "https://heavenly-tent-fff.notion.site/Ophiuchi-Developers-Toolkit-734dc4f766fe40aebfe0da3cbbc304f5?pvs=4",
     isBlank: true,
     icon: () => <HelpCircle strokeWidth={ICON_STROKE_WIDTH} size={ICON_SIZE} />,
+    badgeText: <ExternalLinkIcon className="w-3 h-3" />,
   },
   {
     title: "Discord",
     url: "https://discord.gg/fpp8kNyPtz",
     isBlank: true,
-    icon: () => <DiscordIcon className="w-4 h-4" />,
+    icon: () => <DiscordIcon className="w-3.5 h-3.5" />,
     badgeText: "Feedback",
   },
 ];
@@ -82,18 +84,18 @@ function DockerStatus() {
     systemStatusStore();
 
   if (!isCheckDone) {
-    return <LoaderCircle className="animate-spin w-4 h-4" />;
+    return <LoaderCircle className="animate-spin w-3 h-3" />;
   }
 
   if (!isDockerInstalled) {
-    return <CircleAlert className="text-red-400 w-4 h-4" />;
+    return <CircleAlert className="text-red-400 w-3 h-3" />;
   }
 
   if (!isDockerContainerRunning) {
-    return <CheckCircle className="text-gray-400 w-4 h-4" />;
+    return <CheckCircle className="text-gray-400 w-3 h-3" />;
   }
 
-  return <CheckCircle className="text-green-500 w-4 h-4" />;
+  return <CheckCircle className="text-green-500 w-3 h-3" />;
 }
 
 export function AppSidebar() {
@@ -214,7 +216,7 @@ export function AppSidebar() {
                       {item.badgeText && (
                         <Badge
                           variant="outline"
-                          className="text-xs rounded-full text-muted-foreground"
+                          className="text-[0.6rem] rounded-full text-muted-foreground font-normal"
                         >
                           {item.badgeText}
                         </Badge>
@@ -229,8 +231,10 @@ export function AppSidebar() {
         <SidebarGroup />
       </SidebarContent>
       <SidebarFooter>
-        <div className="text-xs text-muted-foreground">
-          v{packageJson.version}
+        <div className="flex justify-between items-center">
+          <div className="text-xs text-muted-foreground px-2">
+            v{packageJson.version}
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>

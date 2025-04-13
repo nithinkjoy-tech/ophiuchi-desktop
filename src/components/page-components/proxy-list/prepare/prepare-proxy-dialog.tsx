@@ -89,7 +89,8 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
 
   const certificateStep = {
     title: "Generate Certificate",
-    description: "Generate SSL certificate for proxy",
+    description:
+      "A self-signed certificate will be generated for the proxy, used for SSL/HTTPS connections.",
     requiresPassword: false,
   };
 
@@ -305,11 +306,9 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wrench className="h-5 w-5 text-primary" />
-            Prepare Proxy - {proxy.nickname}
+            Setup {proxy.hostname}
           </DialogTitle>
           <DialogDescription>
-            Setup your proxy by generating certificate and configuring system
-            settings.
           </DialogDescription>
         </DialogHeader>
 
@@ -331,23 +330,23 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
               <CardDescription>{certificateStep.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button
-                size={"sm"}
-                onClick={handleGenerateCertificate}
-                variant={certExists ? "secondary" : "default"}
-                disabled={certExists || certGenerating}
-              >
-                {certGenerating ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating...
-                  </div>
-                ) : certExists ? (
-                  "Certificate Generated"
-                ) : (
-                  "Generate Certificate"
-                )}
-              </Button>
+              {!certExists && (
+                <Button
+                  size={"sm"}
+                  onClick={handleGenerateCertificate}
+                  variant={certExists ? "secondary" : "default"}
+                  disabled={certExists || certGenerating}
+                >
+                  {certGenerating ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </div>
+                  ) : (
+                    "Click to Generate Certificate"
+                  )}
+                </Button>
+              )}
             </CardContent>
           </Card>
 

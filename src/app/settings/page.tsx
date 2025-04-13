@@ -81,7 +81,10 @@ function SettingsPage() {
                 is created at:
               </div>
               <div className="">
-                <Code className="text-xs">{`${homeDirPath}/ophiuchi.hosts.bak`}</Code>
+                <Code
+                  type="block"
+                  className="text-xs"
+                >{`${homeDirPath}/ophiuchi.hosts.bak`}</Code>
               </div>
             </CardDescription>
           </CardHeader>
