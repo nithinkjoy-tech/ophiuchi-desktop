@@ -92,7 +92,7 @@ export default function DockerLogModal({
               variant={"outline"}
               onClick={async () => {
                 const command = Command.create("open-docker-app");
-                const output = await command.execute();
+                const output = await command.spawn();
                 console.log(output);
               }}
             >
