@@ -175,7 +175,6 @@ export default function DockerControl({}: {}) {
   const waitForContainerStop = async () => {
     return new Promise<void>(async (resolve, reject) => {
       const startTime = Date.now();
-      const appDataDirPath = await appDataDir();
       const checkInterval = setInterval(async () => {
         if (!(await updateDockerContainerStatus()).isRunning) {
           clearInterval(checkInterval);

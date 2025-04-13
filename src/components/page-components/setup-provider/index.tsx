@@ -2,13 +2,11 @@
 "use client";
 
 import { SystemHelper } from "@/helpers/system";
-import useDocker from "@/hooks/use-docker";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import proxyListStore from "@/stores/proxy-list";
 import systemStatusStore from "@/stores/system-status";
 // When using the Tauri API npm package:
 import { invoke } from "@tauri-apps/api/core";
-import { appDataDir } from "@tauri-apps/api/path";
 import { useCallback, useEffect } from "react";
 import { useInterval } from "usehooks-ts";
 
@@ -18,22 +16,14 @@ export function SystemSetupProvider(props: any) {
     setIsDockerInstalled,
     setIsCheckDone,
     setIsDockerContainerRunning,
+    updateDockerContainerStatus,
   } = systemStatusStore();
   const { init: initCertKeychainStore } = certKeychainStore();
-  const { checkDockerContainerStatus } = useDocker();
   const { load } = proxyListStore();
-
-  const checkDockerContainerRunning = async () => {
-    const appDataDirPath = await appDataDir();
-    const dockerComposePath = `${appDataDirPath}/docker-compose.yml`;
-    checkDockerContainerStatus(dockerComposePath).then((status) => {
-      setIsDockerContainerRunning(status.isRunning, status.containerInfo);
-    });
-  };
 
   useInterval(
     () => {
-      checkDockerContainerRunning();
+      updateDockerContainerStatus();
     },
 
     isDockerInstalled ? 3000 : null
@@ -41,7 +31,7 @@ export function SystemSetupProvider(props: any) {
 
   useEffect(() => {
     initCertKeychainStore();
-    checkDockerContainerRunning();
+    updateDockerContainerStatus();
   }, []);
 
   async function checkDocker() {

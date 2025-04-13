@@ -62,6 +62,15 @@ export class CertificateManager {
         baseDir: BaseDirectory.AppData,
         recursive: true,
       });
+    } else {
+      await remove(`conf/conf.d`, {
+        baseDir: BaseDirectory.AppData,
+        recursive: true,
+      });
+      await mkdir(`conf/conf.d`, {
+        baseDir: BaseDirectory.AppData,
+        recursive: true,
+      });
     }
 
     // read nginx conf file from bundle
@@ -94,18 +103,6 @@ export class CertificateManager {
     );
     // replace all occurences of {PORT} with port
     const nginxConfigWithPort = nginxConfig.replace(/{PORT}/g, port.toString());
-
-    // empty conf.d folder
-    await remove(`conf/conf.d`, {
-      baseDir: BaseDirectory.AppData,
-      recursive: true,
-    });
-
-    // create conf.d folder
-    await mkdir(`conf/conf.d`, {
-      baseDir: BaseDirectory.AppData,
-      recursive: true,
-    });
 
     // write nginx config to file
     await writeTextFile(`conf/conf.d/${hostname}.conf`, nginxConfigWithPort, {
