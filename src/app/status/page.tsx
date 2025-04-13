@@ -77,7 +77,7 @@ function SettingsPage() {
                     : "Container is not running."}
                 </p>
                 <div className="text-xs text-muted-foreground space-y-1">
-                  {isDockerContainerRunning && (
+                  {isDockerContainerRunning ? (
                     <>
                       <p>
                         Project name:{" "}
@@ -88,6 +88,11 @@ function SettingsPage() {
                         <Code>{runningContainerInfo?.Name}</Code>
                       </p>
                     </>
+                  ) : (
+                    <p>
+                      Container name will be shown here after you start the
+                      container.
+                    </p>
                   )}
                 </div>
               </div>
