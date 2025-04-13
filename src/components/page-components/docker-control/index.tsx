@@ -25,6 +25,7 @@ import {
 import { Command } from "@tauri-apps/plugin-shell";
 import { ChevronDownIcon, CircleStop, LogsIcon, RotateCcw } from "lucide-react";
 import { forwardRef, useCallback, useState } from "react";
+import { toast } from "sonner";
 import DockerLogModal from "../proxy-list/docker-log";
 
 const ButtonWithDropdown = forwardRef<
@@ -188,8 +189,8 @@ export default function DockerControl({}: {}) {
   };
 
   const stopDocker = async () => {
-    setDockerModalOpen(true);
     return new Promise<void>(async (resolve, reject) => {
+      const toastId = toast.loading(`Stopping container...`);
       const command = Command.create("run-docker-compose", [
         "compose",
         "-f",
@@ -204,18 +205,27 @@ export default function DockerControl({}: {}) {
             await waitForContainerStop();
             appendDockerProcessStream("✅ Container removed successfully!\n");
             resolve();
+            toast.success(`Container stopped and removed successfully!`, {
+              id: toastId,
+            });
           } catch (error) {
             // log output
             appendDockerProcessStream(
               `🚨 Remove container failed timeout after 30 seconds\n`
             );
             resolve();
+            toast.error(`Container stop and remove failed due to timeout!`, {
+              id: toastId,
+            });
           }
         } else {
           appendDockerProcessStream(
             `🚨 Remove container failed with code ${data.code} and signal ${data.signal}\n`
           );
-          return reject();
+          resolve();
+          toast.error(`Container stop and remove failed!`, {
+            id: toastId,
+          });
         }
       });
       command.on("error", (error) =>
@@ -237,16 +247,15 @@ export default function DockerControl({}: {}) {
   };
 
   const startDocker = async () => {
-    setDockerModalOpen(true);
-    setDockerProcessStream("");
-    setDetailedLog("");
-
     const exists = await checkDockerContainerExists();
     if (exists) {
       await stopDocker();
     }
 
     const certMgr = CertificateManager.shared();
+    const toastId = toast.loading(
+      `Generating ${proxyList.length} nginx configuration files...`
+    );
     const nginxGen = proxyList.map((proxy) => {
       return certMgr.generateNginxConfigurationFiles(
         proxy.hostname,
@@ -256,6 +265,9 @@ export default function DockerControl({}: {}) {
 
     // generate nginx configuration files
     await Promise.all(nginxGen);
+    toast.success(`Generated ${proxyList.length} nginx configuration files`, {
+      id: toastId,
+    });
 
     const resourcePath = await resolveResource(
       "bundle/templates/docker-compose.yml.template"
@@ -264,13 +276,14 @@ export default function DockerControl({}: {}) {
     console.log(`resourcePath: ${resourcePath}`);
     const dockerComposeTemplate = await readTextFile(resourcePath);
 
+    const toastId2 = toast.loading(`Starting container...`);
+
     appendDockerProcessStream(`👉 Starting container...\n`);
     await writeTextFile(`docker-compose.yml`, dockerComposeTemplate, {
       baseDir: BaseDirectory.AppData,
     });
 
     const appDataDirPath = await appDataDir();
-
     const command = Command.create("run-docker-compose", [
       "compose",
       "-f",
@@ -283,15 +296,24 @@ export default function DockerControl({}: {}) {
         appendDockerProcessStream(
           `✅ Starting container successfully finished!\n`
         );
+        toast.success(`Starting container successfully finished!`, {
+          id: toastId2,
+        });
       } else {
         appendDockerProcessStream(
           `🚨 Starting container failed with code ${data.code} and signal ${data.signal}\n`
         );
+        toast.error(`Starting container failed!`, {
+          id: toastId2,
+        });
       }
     });
-    command.on("error", (error) =>
-      appendDockerProcessStream(`command error: "${error}"\n`, true)
-    );
+    command.on("error", (error) => {
+      appendDockerProcessStream(`command error: "${error}"\n`, true);
+      toast.error(`Starting container failed!`, {
+        id: toastId2,
+      });
+    });
     command.stdout.on("data", (line) =>
       appendDockerProcessStream(`${line}`, true)
     );
