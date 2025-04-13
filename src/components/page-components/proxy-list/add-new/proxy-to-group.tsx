@@ -31,7 +31,6 @@ export function AddProxyToGroupDialog({ onDone }: { onDone: () => void }) {
     addProxyToGroup,
     selectedGroup,
   } = proxyListStore();
-  const [groupName, setGroupName] = React.useState("");
   const [open, setOpen] = React.useState(false);
 
   return (
