@@ -39,6 +39,11 @@ const ButtonWithDropdown = forwardRef<
   const { proxyList } = proxyListStore();
   const { isDockerContainerRunning } = systemStatusStore();
 
+  const proxyListHasDuplicatePorts = proxyList.some(
+    (proxy, index, self) =>
+      index !== self.findIndex((t) => t.port === proxy.port)
+  );
+
   return (
     <div className="divide-primary-foreground/30 inline-flex divide-x rounded-md shadow-xs rtl:space-x-reverse">
       <Button
@@ -46,7 +51,7 @@ const ButtonWithDropdown = forwardRef<
         className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
         size="sm"
         onClick={isDockerContainerRunning ? onStop : onStart}
-        disabled={proxyList.length === 0}
+        disabled={proxyList.length === 0 || proxyListHasDuplicatePorts}
       >
         <DockerIcon className="w-4 h-4" />
         {isDockerContainerRunning ? "Stop Container" : "Start Container"}
@@ -58,7 +63,7 @@ const ButtonWithDropdown = forwardRef<
             className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
             size="icon-sm"
             aria-label="Options"
-            disabled={proxyList.length === 0}
+            disabled={proxyList.length === 0 || proxyListHasDuplicatePorts}
           >
             <ChevronDownIcon size={16} aria-hidden="true" />
           </Button>

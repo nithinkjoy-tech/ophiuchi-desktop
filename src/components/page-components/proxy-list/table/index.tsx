@@ -43,14 +43,18 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { IProxyData } from "@/helpers/proxy-manager/interfaces";
+import {
+  IProxyData
+} from "@/helpers/proxy-manager/interfaces";
+import { cn } from "@/lib/utils";
 import proxyListStore from "@/stores/proxy-list";
-import { Bookmark } from "lucide-react";
+import { Bookmark, TriangleAlertIcon } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import DockerControl from "../../docker-control";
 
 function GroupManageDropdown({ item }: { item: IProxyData }) {
-  const { removeProxyFromGroup, addProxyToGroup, groupList } = proxyListStore();
+  const { removeProxyFromGroup, addProxyToGroup, groupList, selectedGroup } =
+    proxyListStore();
 
   const numberOfGroupsThisProxyIsIn = groupList.filter((group) => {
     return !!group.includedHosts.find((host) => host === item.hostname);
@@ -70,6 +74,7 @@ function GroupManageDropdown({ item }: { item: IProxyData }) {
             (host) => host === item.hostname
           );
           const isNoGroup = group.isNoGroup;
+          const isSelectedGroup = group.id === selectedGroup?.id;
           return (
             <React.Fragment key={group.id}>
               <DropdownMenuCheckboxItem
@@ -85,7 +90,14 @@ function GroupManageDropdown({ item }: { item: IProxyData }) {
                   }
                 }}
               >
-                {group.name}
+                <div
+                  className={cn(
+                    "flex items-center gap-2",
+                    isSelectedGroup ? "underline" : ""
+                  )}
+                >
+                  {group.name}
+                </div>
               </DropdownMenuCheckboxItem>
               {isNoGroup && <DropdownMenuSeparator />}
             </React.Fragment>
@@ -213,13 +225,30 @@ export default function ProxyListTable() {
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
-                    <TableCell>{proxyItem.port}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {proxyItem.port}
+                        {proxyList.filter((p) => p.port === proxyItem.port)
+                          .length > 1 && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <TriangleAlertIcon className="w-3 h-3 text-red-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>This port is already used by another proxy.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </TableCell>
 
                     {/* <TableCell></TableCell> */}
 
                     <TableCell className="flex gap-2 justify-end items-center">
                       <PrepareButtons item={proxyItem} />
-                      <GroupManageDropdown item={proxyItem} />
+                      <GroupManageDropdown
+                        item={proxyItem}
+                      />
                       {selectedGroup?.isNoGroup && (
                         <DeleteProxyDialog
                           proxy={proxyItem}
