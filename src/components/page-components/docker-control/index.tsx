@@ -13,7 +13,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CertificateManager } from "@/helpers/certificate-manager";
-import useDocker from "@/hooks/use-docker";
 import proxyListStore from "@/stores/proxy-list";
 import systemStatusStore from "@/stores/system-status";
 import { appDataDir, resolveResource } from "@tauri-apps/api/path";
@@ -31,12 +30,13 @@ import DockerLogModal from "../proxy-list/docker-log";
 const ButtonWithDropdown = forwardRef<
   HTMLButtonElement,
   {
+    disabled: boolean;
     onStart: () => void;
     onStop: () => void;
     onRestart: () => void;
     onShowLogs: () => void;
   }
->(({ onStart, onStop, onRestart, onShowLogs }, ref) => {
+>(({ onStart, onStop, onRestart, onShowLogs, disabled }, ref) => {
   const { proxyList } = proxyListStore();
   const { isDockerContainerRunning } = systemStatusStore();
 
@@ -52,7 +52,9 @@ const ButtonWithDropdown = forwardRef<
         className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
         size="sm"
         onClick={isDockerContainerRunning ? onStop : onStart}
-        disabled={proxyList.length === 0 || proxyListHasDuplicatePorts}
+        disabled={
+          proxyList.length === 0 || proxyListHasDuplicatePorts || disabled
+        }
       >
         <DockerIcon className="w-4 h-4" />
         {isDockerContainerRunning ? "Stop Container" : "Start Container"}
@@ -64,7 +66,7 @@ const ButtonWithDropdown = forwardRef<
             className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
             size="icon-sm"
             aria-label="Options"
-            disabled={proxyList.length === 0 || proxyListHasDuplicatePorts}
+            disabled={proxyList.length === 0 || proxyListHasDuplicatePorts || disabled}
           >
             <ChevronDownIcon size={16} aria-hidden="true" />
           </Button>
@@ -99,10 +101,11 @@ ButtonWithDropdown.displayName = "ButtonWithDropdown";
 
 export default function DockerControl({}: {}) {
   const { proxyList } = proxyListStore();
-  const { checkDockerContainerStatus } = useDocker();
+  const { updateDockerContainerStatus } = systemStatusStore();
   const [dockerProcessStream, setDockerProcessStream] = useState<any>("");
   const [dockerModalOpen, setDockerModalOpen] = useState(false);
   const [detailedLog, setDetailedLog] = useState<any>("");
+  const [isManipulatingDocker, setIsManipulatingDocker] = useState(false);
 
   const appendDockerProcessStream = useCallback(
     (line: any, isDetail: boolean = false) => {
@@ -174,7 +177,7 @@ export default function DockerControl({}: {}) {
       const startTime = Date.now();
       const appDataDirPath = await appDataDir();
       const checkInterval = setInterval(async () => {
-        if (!(await checkDockerContainerStatus(appDataDirPath)).isRunning) {
+        if (!(await updateDockerContainerStatus()).isRunning) {
           clearInterval(checkInterval);
           resolve();
         } else if (Date.now() - startTime > 30000) {
@@ -191,6 +194,7 @@ export default function DockerControl({}: {}) {
   const stopDocker = async () => {
     return new Promise<void>(async (resolve, reject) => {
       const toastId = toast.loading(`Stopping container...`);
+      setIsManipulatingDocker(true);
       const command = Command.create("run-docker-compose", [
         "compose",
         "-f",
@@ -204,6 +208,7 @@ export default function DockerControl({}: {}) {
           try {
             await waitForContainerStop();
             appendDockerProcessStream("✅ Container removed successfully!\n");
+            updateDockerContainerStatus();
             resolve();
             toast.success(`Container stopped and removed successfully!`, {
               id: toastId,
@@ -217,8 +222,11 @@ export default function DockerControl({}: {}) {
             toast.error(`Container stop and remove failed due to timeout!`, {
               id: toastId,
             });
+          } finally {
+            setIsManipulatingDocker(false);
           }
         } else {
+          setIsManipulatingDocker(false);
           appendDockerProcessStream(
             `🚨 Remove container failed with code ${data.code} and signal ${data.signal}\n`
           );
@@ -228,9 +236,10 @@ export default function DockerControl({}: {}) {
           });
         }
       });
-      command.on("error", (error) =>
-        appendDockerProcessStream(`command error: "${error}"\n`, true)
-      );
+      command.on("error", (error) => {
+        setIsManipulatingDocker(false);
+        appendDockerProcessStream(`command error: "${error}"\n`, true);
+      });
       command.stdout.on("data", (line) =>
         appendDockerProcessStream(`${line}`, true)
       );
@@ -247,6 +256,7 @@ export default function DockerControl({}: {}) {
   };
 
   const startDocker = async () => {
+    setIsManipulatingDocker(true);
     const exists = await checkDockerContainerExists();
     if (exists) {
       await stopDocker();
@@ -291,14 +301,16 @@ export default function DockerControl({}: {}) {
       "up",
       "-d",
     ]);
-    command.on("close", (data) => {
+    command.on("close", async (data) => {
       if (data.code == 0) {
         appendDockerProcessStream(
           `✅ Starting container successfully finished!\n`
         );
+        await updateDockerContainerStatus();
         toast.success(`Starting container successfully finished!`, {
           id: toastId2,
         });
+        
       } else {
         appendDockerProcessStream(
           `🚨 Starting container failed with code ${data.code} and signal ${data.signal}\n`
@@ -307,8 +319,10 @@ export default function DockerControl({}: {}) {
           id: toastId2,
         });
       }
+      setIsManipulatingDocker(false);
     });
     command.on("error", (error) => {
+      setIsManipulatingDocker(false);
       appendDockerProcessStream(`command error: "${error}"\n`, true);
       toast.error(`Starting container failed!`, {
         id: toastId2,
@@ -329,6 +343,7 @@ export default function DockerControl({}: {}) {
       <Tooltip>
         <TooltipTrigger asChild>
           <ButtonWithDropdown
+            disabled={isManipulatingDocker}
             onStart={() => {
               if (proxyList.length === 0) {
                 return;

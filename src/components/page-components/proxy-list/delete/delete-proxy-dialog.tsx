@@ -26,14 +26,15 @@ import { IProxyData } from "@/helpers/proxy-manager/interfaces";
 import { cn } from "@/lib/utils";
 import type { Certificate } from "@/stores/cert-keychain-store";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
+import systemStatusStore from "@/stores/system-status";
 import { invoke } from "@tauri-apps/api/core";
 import {
   CheckCircle2,
   KeyRound,
   Loader2,
   ShieldAlert,
-  Trash,
-  TriangleAlertIcon,
+  TrashIcon,
+  TriangleAlertIcon
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -57,10 +58,8 @@ interface StepStatus {
 const STEP_DELAY = 250;
 
 export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
+  const { isDockerContainerRunning } = systemStatusStore();
   const [open, setOpen] = useState(false);
-  const [hostsContext, setHostsContext] = useState<HostsFileContext | null>(
-    null
-  );
   const [password, setPassword] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [stepStatuses, setStepStatuses] = useState<Record<number, StepStatus>>({
@@ -277,8 +276,8 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Trash className="h-3.5 w-3.5" />
+        <Button variant="outline" size="sm" disabled={isDockerContainerRunning}>
+          <TrashIcon className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px]">

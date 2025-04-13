@@ -1,7 +1,7 @@
 import { IContainer } from "@/stores/system-status";
 import { Command } from "@tauri-apps/plugin-shell";
 
-interface DockerContainerStatus {
+export interface DockerContainerStatus {
   containerInfo: IContainer | null
   isRunning: boolean;
   error?: string;
