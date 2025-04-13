@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -22,7 +23,7 @@ import {
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { Command } from "@tauri-apps/plugin-shell";
-import { ChevronDownIcon, CircleStop, RotateCcw } from "lucide-react";
+import { ChevronDownIcon, CircleStop, LogsIcon, RotateCcw } from "lucide-react";
 import { forwardRef, useCallback, useState } from "react";
 import DockerLogModal from "../proxy-list/docker-log";
 
@@ -32,8 +33,9 @@ const ButtonWithDropdown = forwardRef<
     onStart: () => void;
     onStop: () => void;
     onRestart: () => void;
+    onShowLogs: () => void;
   }
->(({ onStart, onStop, onRestart }, ref) => {
+>(({ onStart, onStop, onRestart, onShowLogs }, ref) => {
   const { proxyList } = proxyListStore();
   const { isDockerContainerRunning } = systemStatusStore();
 
@@ -62,13 +64,24 @@ const ButtonWithDropdown = forwardRef<
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="bottom" sideOffset={4} align="end">
-          <DropdownMenuItem onClick={onStop} disabled={!isDockerContainerRunning}>
+          <DropdownMenuItem
+            onClick={onStop}
+            disabled={!isDockerContainerRunning}
+          >
             <CircleStop className="opacity-60 w-4 h-4" aria-hidden="true" />
             Stop Container
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onRestart} disabled={!isDockerContainerRunning}>
+          <DropdownMenuItem
+            onClick={onRestart}
+            disabled={!isDockerContainerRunning}
+          >
             <RotateCcw className="opacity-60 w-4 h-4" aria-hidden="true" />
             Restart Container
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onShowLogs}>
+            <LogsIcon className="opacity-60 w-4 h-4" aria-hidden="true" />
+            Open Logs
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -210,9 +223,7 @@ export default function DockerControl({}: {}) {
         appendDockerProcessStream(`${line}`, true)
       );
       const child = await command.spawn();
-      appendDockerProcessStream(
-        `👉 Stopping Container...\n`
-      );
+      appendDockerProcessStream(`👉 Stopping Container...\n`);
       appendDockerProcessStream(
         `Command spawned with pid ${child.pid}\n`,
         true
@@ -305,6 +316,9 @@ export default function DockerControl({}: {}) {
                 return;
               }
               startDocker();
+            }}
+            onShowLogs={() => {
+              setDockerModalOpen(true);
             }}
           />
         </TooltipTrigger>
