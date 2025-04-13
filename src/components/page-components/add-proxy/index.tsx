@@ -24,6 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "lucide-react";
 import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { withMask } from "use-mask-input";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -70,9 +71,12 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
 
   const updateCanSubmit = useCallback(() => {
     const values = form.getValues();
+    setCanSubmit(false);
     const hostname = fixHostname(values.hostname);
     checkHostnameExists(hostname);
     if (hostnameExists) return;
+    if (hostname.endsWith(".app")) return;
+    if (hostname.endsWith(".")) return;
     if (values.port <= 0 || values.port > 65535) return;
     if (hostname.length < 4) return;
     setCanSubmit(true);
@@ -129,7 +133,11 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                     <FormControl>
                       <Input
                         {...field}
-                        type="number"
+                        type="text"
+                        ref={withMask("99999", {
+                          placeholder: "",
+                          showMaskOnHover: false,
+                        })}
                         required={true}
                         onChange={(e) => {
                           field.onChange(e);
@@ -157,17 +165,21 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                     <FormLabel>Hostname</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={"my.app.local"}
                         {...field}
                         onChange={(e) => {
-                          field.onChange(e);
+                          const sanitizedHostname = e.target.value.replace(
+                            /[^a-z0-9\-\.]/g,
+                            ""
+                          );
+                          field.onChange(sanitizedHostname);
                           updateCanSubmit();
                         }}
                       />
                     </FormControl>
                     <FormDescription>
                       Any hostname you want to use locally. <br />
-                      Needs to be at least 4 characters long.
+                      - Needs to be at least 4 characters long.
+                      <br />- Cannot end with .app (MacOS)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
