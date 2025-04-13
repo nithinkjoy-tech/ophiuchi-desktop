@@ -448,6 +448,10 @@ export default function DockerControl({}: {}) {
         onClosed={() => {
           setDockerModalOpen(false);
         }}
+        onClearLogs={() => {
+          setDockerProcessStream("");
+          setDetailedLog("");
+        }}
       />
     </>
   );

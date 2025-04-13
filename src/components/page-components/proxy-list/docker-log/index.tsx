@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Command } from "@tauri-apps/plugin-shell";
 
 import { useEffect, useState } from "react";
 
@@ -17,14 +16,16 @@ export default function DockerLogModal({
   detailedStream,
   isOpen,
   onClosed,
+  onClearLogs,
 }: {
   stream: any;
   detailedStream: any;
   isOpen: boolean;
   onClosed?: () => void;
+  onClearLogs?: () => void;
 }) {
   const [_isOpen, setIsOpen] = useState(true);
-  const [showDetailedLog, setShowDetailedLog] = useState(false);
+  const [showDetailedLog, setShowDetailedLog] = useState(true);
 
   useEffect(() => {
     setIsOpen(isOpen);
@@ -32,7 +33,6 @@ export default function DockerLogModal({
 
   function closeModal() {
     setIsOpen(false);
-    setShowDetailedLog(false);
     onClosed && onClosed();
   }
 
@@ -91,12 +91,10 @@ export default function DockerLogModal({
             <Button
               variant={"outline"}
               onClick={async () => {
-                const command = Command.create("open-docker-app");
-                const output = await command.spawn();
-                console.log(output);
+                onClearLogs && onClearLogs();
               }}
             >
-              Open Docker Desktop
+              Clear Logs
             </Button>
             <Button variant={"secondary"} onClick={closeModal}>
               Close
