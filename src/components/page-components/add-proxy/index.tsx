@@ -47,6 +47,7 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
   const [open, setOpen] = React.useState(false);
   const [hostnameExists, setHostnameExists] = React.useState(false);
   const [canSubmit, setCanSubmit] = React.useState(false);
+  const [hostErrorMessage, setHostErrorMessage] = React.useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,11 +75,32 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
     setCanSubmit(false);
     const hostname = fixHostname(values.hostname);
     checkHostnameExists(hostname);
-    if (hostnameExists) return;
-    if (hostname.endsWith(".app")) return;
-    if (hostname.endsWith(".")) return;
-    if (values.port <= 0 || values.port > 65535) return;
-    if (hostname.length < 4) return;
+    if (hostnameExists) {
+      setHostErrorMessage("Hostname already exists");
+      return;
+    }
+    if (hostname.length < 4) {
+      setHostErrorMessage("Hostname must be at least 4 characters long");
+      return;
+    }
+    if (hostname.endsWith(".app")) {
+      setHostErrorMessage("Hostname cannot end with .app");
+      return;
+    }
+    if (hostname.endsWith(".")) {
+      setHostErrorMessage("Hostname cannot end with a dot");
+      return;
+    }
+    // if hostname ends with dot + number, return
+    if (/\.\d+$/.test(hostname)) {
+      setHostErrorMessage("Hostname cannot end with a number");
+      return;
+    }
+    if (values.port <= 0 || values.port > 65535) {
+      setHostErrorMessage("Port must be between 1 and 65535");
+      return;
+    }
+    setHostErrorMessage("");
     setCanSubmit(true);
   }, [form, fixHostname, checkHostnameExists, hostnameExists]);
 
@@ -190,6 +212,13 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
               />
             </form>
           </Form>
+          {hostErrorMessage ? (
+            <div className="text-red-500/50 text-xs">{hostErrorMessage}</div>
+          ) : (
+            <div className="text-xs opacity-0">
+              .
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button

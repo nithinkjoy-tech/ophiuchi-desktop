@@ -68,7 +68,7 @@ const proxyListStore = create<ProxyListStore>()(
           (el) => el.hostname === proxy.hostname
         );
         _totalProxyList[index].canLaunch = canLaunch;
-        set({ totalProxyList: _totalProxyList });
+        set({ totalProxyList: [..._totalProxyList] });
       },
       deleteProxyFromList: async (proxy: IProxyData) => {
         const _proxyList = get().totalProxyList;
