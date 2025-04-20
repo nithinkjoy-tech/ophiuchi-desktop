@@ -7,7 +7,7 @@
     "dev": "next dev -p 8899",
     "build": "next build",
     "start": "next start -p 8899",
-    "serve": "serve@latest out -p 8899",
+    "serve": "serve out -p 8899",
     "lint": "next lint",
     "build:universal": "tauri build --target universal-apple-darwin",
     "build:appbundles": "tauri build -- --bundles app",
@@ -67,6 +67,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.5.0"
+    "@tauri-apps/cli": "^2.5.0",
+    "serve": "^14.2.4"
   }
 }
