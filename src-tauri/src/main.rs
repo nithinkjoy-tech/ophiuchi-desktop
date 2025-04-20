@@ -12,6 +12,11 @@ use std::io::{self, prelude::*};
 use std::process::Command;
 use tauri_plugin_sentry::{minidump, sentry};
 
+#[tauri::command]
+fn get_env(name: &str) -> String {
+    std::env::var(String::from(name)).unwrap_or(String::from(""))
+}
+
 #[tauri::command(rename_all = "snake_case")]
 fn add_line_to_hosts(hostname: String, password: String) {
     // Construct the line to add to /etc/hosts
@@ -386,6 +391,7 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
+            get_env,
             check_docker_installed,
             add_cert_to_keychain,
             remove_cert_from_keychain,
