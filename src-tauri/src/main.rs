@@ -361,8 +361,13 @@ fn main() {
     dotenv().ok();
     let _ = fix_path_env::fix();
     let sentry_dsn = std::env::var("SENTRY_DSN");
-    let mut builder =
-        tauri::Builder::default().plugin(tauri_plugin_updater::Builder::new().build());
+    let mut builder = tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(desktop)]
+            app.handle()
+                .plugin(tauri_plugin_updater::Builder::new().build())?;
+            Ok(())
+        });
 
     if sentry_dsn.is_ok() {
         // console output
@@ -386,6 +391,7 @@ fn main() {
     }
 
     builder
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
