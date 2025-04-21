@@ -143,7 +143,7 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
             hostname and https.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 items-center">
+        <div className="grid items-center gap-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
@@ -213,7 +213,7 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
             </form>
           </Form>
           {hostErrorMessage ? (
-            <div className="text-red-500/50 text-xs">{hostErrorMessage}</div>
+            <div className="text-xs text-red-500/50">{hostErrorMessage}</div>
           ) : (
             <div className="text-xs opacity-0">.</div>
           )}

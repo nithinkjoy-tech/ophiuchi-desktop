@@ -157,7 +157,7 @@ export default function ProxyListTable() {
             {selectedGroup?.isNoGroup ? (
               "All Proxies"
             ) : (
-              <div className="flex gap-2 items-center">
+              <div className="flex items-center gap-2">
                 <div>Proxy Group - {selectedGroup?.name}</div>
                 <div className="flex">
                   <EditGroupDialog />
@@ -168,7 +168,7 @@ export default function ProxyListTable() {
 
           <CardDescription className="flex justify-end">
             <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-              <div className="flex gap-2 items-center">
+              <div className="flex items-center gap-2">
                 {selectedGroup?.isNoGroup ? (
                   <>
                     <DockerControl />
@@ -211,7 +211,7 @@ export default function ProxyListTable() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <a
-                            className="p-2 underline cursor-pointer text-sm sm:pl-0"
+                            className="cursor-pointer p-2 text-sm underline sm:pl-0"
                             href={`https://${proxyItem.hostname}`}
                             target="_blank"
                           >
@@ -230,7 +230,7 @@ export default function ProxyListTable() {
                           .length > 1 && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <CircleAlertIcon className="w-3 h-3 text-gray-500" />
+                              <CircleAlertIcon className="h-3 w-3 text-gray-500" />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>This port is also used by another proxy.</p>
@@ -242,13 +242,13 @@ export default function ProxyListTable() {
 
                     <TableCell>
                       {proxyItem.canLaunch ? (
-                        <CheckIcon className="w-3 h-3 text-green-500" />
+                        <CheckIcon className="h-3 w-3 text-green-500" />
                       ) : (
-                        <XIcon className="w-3 h-3 text-red-500" />
+                        <XIcon className="h-3 w-3 text-red-500" />
                       )}
                     </TableCell>
 
-                    <TableCell className="flex gap-2 justify-end items-center">
+                    <TableCell className="flex items-center justify-end gap-2">
                       <PrepareButtons item={proxyItem} />
                       <GroupManageDropdown item={proxyItem} />
                       {selectedGroup?.isNoGroup && (
@@ -264,7 +264,7 @@ export default function ProxyListTable() {
             </TableBody>
           </Table>
           {selectedGroup?.isNoGroup ? null : (
-            <div className="text-right pt-2">
+            <div className="pt-2 text-right">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button type="button" variant={"outline"} size="sm">

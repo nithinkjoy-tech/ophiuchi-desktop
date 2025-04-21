@@ -52,10 +52,9 @@ export default function MultiStateButton({
           done.onClick();
         }
       }}
-      className={`block rounded-md ${bgColor()} px-6 py-2 text-center ${textColor()} ${hoverBgColor()} focus-visible:outline 
-      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 shrink-0`}
+      className={`block rounded-md ${bgColor()} px-6 py-2 text-center ${textColor()} ${hoverBgColor()} shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500`}
     >
-      <div className="flex gap-2 items-center">{displayString()}</div>
+      <div className="flex items-center gap-2">{displayString()}</div>
     </button>
   );
 }

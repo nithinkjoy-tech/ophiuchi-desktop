@@ -37,7 +37,7 @@ export function AddProxyToGroupDialog({ onDone }: { onDone: () => void }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="secondary" size="sm" className="w-full">
-          <BookmarkPlusIcon className="h-4 w-4 mr-2" /> Add
+          <BookmarkPlusIcon className="mr-2 h-4 w-4" /> Add
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">

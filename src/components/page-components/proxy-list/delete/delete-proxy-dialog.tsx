@@ -307,7 +307,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                         <CardHeader>
                           <CardTitle
                             className={cn(
-                              "text-sm font-semibold flex gap-2 items-center",
+                              "flex items-center gap-2 text-sm font-semibold",
                               stepStatuses[step].error && "text-destructive",
                               stepStatuses[step].completed &&
                                 "text-muted-foreground line-through",
@@ -420,7 +420,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                           <CardHeader>
                             <CardTitle
                               className={cn(
-                                "text-sm font-semibold flex gap-2 items-center",
+                                "flex items-center gap-2 text-sm font-semibold",
                                 stepStatuses[step].error && "text-destructive",
                                 stepStatuses[step].completed &&
                                   "text-muted-foreground line-through",

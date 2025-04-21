@@ -61,15 +61,15 @@ export default function DockerLogModal({
           </DialogHeader>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <div className="mt-2  w-full">
-                <div className="h-[50%] max-h-[400px] overflow-y-auto  p-8 min-h-[400px] bg-foreground/10 rounded-lg">
-                  <code className="text-sm  whitespace-pre-wrap">
+              <div className="mt-2 w-full">
+                <div className="h-[50%] max-h-[400px] min-h-[400px] overflow-y-auto rounded-lg bg-foreground/10 p-8">
+                  <code className="whitespace-pre-wrap text-sm">
                     {showDetailedLog ? detailedStream : stream}
                   </code>
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-4 justify-end">
+            <div className="mt-4 flex items-center justify-end gap-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="detailed-logs"

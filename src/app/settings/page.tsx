@@ -63,7 +63,7 @@ function SettingsPage() {
           </CardHeader>
           <CardContent className="flex">
             <p
-              className="cursor-pointer underline text-xs"
+              className="cursor-pointer text-xs underline"
               onClick={() => {
                 onOpenFinder();
               }}
@@ -90,7 +90,7 @@ function SettingsPage() {
           </CardHeader>
           <CardContent className="flex">
             <p
-              className="cursor-pointer underline text-xs"
+              className="cursor-pointer text-xs underline"
               onClick={() => {
                 onOpenBackupFiles();
               }}

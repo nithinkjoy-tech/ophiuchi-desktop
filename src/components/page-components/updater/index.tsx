@@ -84,13 +84,13 @@ export default function UpdaterInterface() {
       <CardHeader className="relative">
         <CardTitle className="text-xs">Update available!</CardTitle>
         <CardDescription>v{theUpdate.version}</CardDescription>
-        <div className="absolute top-0 right-2">
+        <div className="absolute right-2 top-0">
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => setTheUpdate(null)}
           >
-            <XIcon className="w-4 h-4" />
+            <XIcon className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>

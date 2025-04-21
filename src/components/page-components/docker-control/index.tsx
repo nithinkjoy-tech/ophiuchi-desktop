@@ -46,7 +46,7 @@ const ButtonWithDropdown = forwardRef<
   );
 
   return (
-    <div className="divide-primary-foreground/30 inline-flex divide-x rounded-md shadow-xs rtl:space-x-reverse">
+    <div className="shadow-xs inline-flex divide-x divide-primary-foreground/30 rounded-md rtl:space-x-reverse">
       <Button
         variant={isDockerContainerRunning ? "secondary" : "default"}
         className="rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
@@ -56,7 +56,7 @@ const ButtonWithDropdown = forwardRef<
           (proxyList.length === 0 || disabled) && !isDockerContainerRunning
         }
       >
-        <DockerIcon className="w-4 h-4" />
+        <DockerIcon className="h-4 w-4" />
         {isDockerContainerRunning ? "Stop Container" : "Start Container"}
       </Button>
       <DropdownMenu>
@@ -78,19 +78,19 @@ const ButtonWithDropdown = forwardRef<
             onClick={onStop}
             disabled={!isDockerContainerRunning}
           >
-            <CircleStop className="opacity-60 w-4 h-4" aria-hidden="true" />
+            <CircleStop className="h-4 w-4 opacity-60" aria-hidden="true" />
             Stop Container
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={onRestart}
             disabled={!isDockerContainerRunning}
           >
-            <RotateCcw className="opacity-60 w-4 h-4" aria-hidden="true" />
+            <RotateCcw className="h-4 w-4 opacity-60" aria-hidden="true" />
             Restart Container
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onShowLogs}>
-            <LogsIcon className="opacity-60 w-4 h-4" aria-hidden="true" />
+            <LogsIcon className="h-4 w-4 opacity-60" aria-hidden="true" />
             Open Logs
           </DropdownMenuItem>
         </DropdownMenuContent>

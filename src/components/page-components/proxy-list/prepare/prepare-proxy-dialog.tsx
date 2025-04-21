@@ -115,7 +115,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
             Adds an entry to /etc/hosts file. Automatic backups are created{" "}
             <span
               onClick={onOpenBackupFiles}
-              className="underline cursor-pointer"
+              className="cursor-pointer underline"
             >
               here
             </span>
@@ -325,7 +325,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
             <CardHeader>
               <CardTitle
                 className={cn(
-                  "text-sm font-semibold flex gap-2 items-center",
+                  "flex items-center gap-2 text-sm font-semibold",
                   certExists && "text-muted-foreground",
                 )}
               >
@@ -374,7 +374,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                           <CardHeader>
                             <CardTitle
                               className={cn(
-                                "text-sm font-semibold flex gap-2 items-center",
+                                "flex items-center gap-2 text-sm font-semibold",
                                 stepStatuses[step].error && "text-destructive",
                                 stepStatuses[step].completed &&
                                   "text-muted-foreground line-through",
@@ -482,7 +482,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                         <CardHeader>
                           <CardTitle
                             className={cn(
-                              "text-sm font-semibold flex gap-2 items-center",
+                              "flex items-center gap-2 text-sm font-semibold",
                               stepStatuses[step].error && "text-destructive",
                               stepStatuses[step].completed &&
                                 "text-muted-foreground line-through",
