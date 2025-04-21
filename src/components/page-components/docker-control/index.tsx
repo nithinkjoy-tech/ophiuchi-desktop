@@ -42,7 +42,7 @@ const ButtonWithDropdown = forwardRef<
 
   const proxyListHasDuplicatePorts = proxyList.some(
     (proxy, index, self) =>
-      index !== self.findIndex((t) => t.port === proxy.port)
+      index !== self.findIndex((t) => t.port === proxy.port),
   );
 
   return (
@@ -112,7 +112,7 @@ export default function DockerControl({}: {}) {
 
   useEffect(() => {
     const hasLaunchableProxies = proxyList.some(
-      (proxy) => proxy.canLaunch === true
+      (proxy) => proxy.canLaunch === true,
     );
     setHasLaunchableProxies(hasLaunchableProxies);
   }, [proxyList]);
@@ -133,7 +133,7 @@ export default function DockerControl({}: {}) {
         setDetailedLog((prev: any) => prev + line);
       }
     },
-    []
+    [],
   );
 
   const checkDockerContainerExists = async () => {
@@ -153,12 +153,12 @@ export default function DockerControl({}: {}) {
         appendDockerProcessStream(`${linesFlattened}`, true);
         if (linesFlattened.includes("ophiuchi-nginx")) {
           appendDockerProcessStream(
-            `✅ Container exists. Ophiuchi will stop and remove container...\n`
+            `✅ Container exists. Ophiuchi will stop and remove container...\n`,
           );
           resolve(true);
         } else {
           appendDockerProcessStream(
-            `🚧 Container doesn't exist. Ophiuchi will create and start container...\n`
+            `🚧 Container doesn't exist. Ophiuchi will create and start container...\n`,
           );
           resolve(false);
         }
@@ -169,7 +169,7 @@ export default function DockerControl({}: {}) {
         // }
       });
       command.on("error", (error) =>
-        console.error(`command error: "${error}"`)
+        console.error(`command error: "${error}"`),
       );
       const child = command.spawn();
 
@@ -192,7 +192,7 @@ export default function DockerControl({}: {}) {
         } else if (Date.now() - startTime > 30000) {
           clearInterval(checkInterval);
           appendDockerProcessStream(
-            "⚠️ Container stop timeout after 30 seconds\n"
+            "⚠️ Container stop timeout after 30 seconds\n",
           );
           reject(new Error("Container stop timeout"));
         }
@@ -233,7 +233,7 @@ export default function DockerControl({}: {}) {
           } catch (error) {
             // log output
             appendDockerProcessStream(
-              `🚨 Remove container failed timeout after 30 seconds\n`
+              `🚨 Remove container failed timeout after 30 seconds\n`,
             );
             resolve();
             toast.error(`Container stop and remove failed due to timeout!`, {
@@ -253,7 +253,7 @@ export default function DockerControl({}: {}) {
         } else {
           setIsManipulatingDocker(false);
           appendDockerProcessStream(
-            `🚨 Remove container failed with code ${data.code} and signal ${data.signal}\n`
+            `🚨 Remove container failed with code ${data.code} and signal ${data.signal}\n`,
           );
           resolve();
           toast.error(`Container stop and remove failed!`, {
@@ -274,16 +274,16 @@ export default function DockerControl({}: {}) {
         appendDockerProcessStream(`command error: "${error}"\n`, true);
       });
       command.stdout.on("data", (line) =>
-        appendDockerProcessStream(`${line}`, true)
+        appendDockerProcessStream(`${line}`, true),
       );
       command.stderr.on("data", (line) =>
-        appendDockerProcessStream(`${line}`, true)
+        appendDockerProcessStream(`${line}`, true),
       );
       const child = await command.spawn();
       appendDockerProcessStream(`👉 Stopping Container...\n`);
       appendDockerProcessStream(
         `Command spawned with pid ${child.pid}\n`,
-        true
+        true,
       );
     });
   };
@@ -298,7 +298,7 @@ export default function DockerControl({}: {}) {
     const certMgr = CertificateManager.shared();
     await certMgr.cleanUp();
     const canLaunchProxyList = proxyList.filter(
-      (proxy) => proxy.canLaunch === true
+      (proxy) => proxy.canLaunch === true,
     );
 
     // const toastId = toast.loading(
@@ -307,7 +307,7 @@ export default function DockerControl({}: {}) {
     const nginxGen = canLaunchProxyList.map((proxy) => {
       return certMgr.generateNginxConfigurationFiles(
         proxy.hostname,
-        proxy.port
+        proxy.port,
       );
     });
     console.log(`nginxGen: ${nginxGen}`);
@@ -322,7 +322,7 @@ export default function DockerControl({}: {}) {
     // );
 
     const resourcePath = await resolveResource(
-      "bundle/templates/docker-compose.yml.template"
+      "bundle/templates/docker-compose.yml.template",
     );
 
     console.log(`resourcePath: ${resourcePath}`);
@@ -349,7 +349,7 @@ export default function DockerControl({}: {}) {
     command.on("close", async (data) => {
       if (data.code == 0) {
         appendDockerProcessStream(
-          `✅ Starting container successfully finished!\n`
+          `✅ Starting container successfully finished!\n`,
         );
         await updateDockerContainerStatus();
         toast.success(`Starting container successfully finished!`, {
@@ -365,7 +365,7 @@ export default function DockerControl({}: {}) {
         });
       } else {
         appendDockerProcessStream(
-          `🚨 Starting container failed with code ${data.code} and signal ${data.signal}\n`
+          `🚨 Starting container failed with code ${data.code} and signal ${data.signal}\n`,
         );
         toast.error(`Starting container failed!`, {
           id: toastId2,
@@ -397,10 +397,10 @@ export default function DockerControl({}: {}) {
       });
     });
     command.stdout.on("data", (line) =>
-      appendDockerProcessStream(`${line}`, true)
+      appendDockerProcessStream(`${line}`, true),
     );
     command.stderr.on("data", (line) =>
-      appendDockerProcessStream(`${line}`, true)
+      appendDockerProcessStream(`${line}`, true),
     );
     const child = await command.spawn();
     appendDockerProcessStream(`Command spawned with pid ${child.pid}\n`, true);

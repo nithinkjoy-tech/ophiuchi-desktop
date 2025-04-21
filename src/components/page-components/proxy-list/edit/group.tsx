@@ -58,7 +58,6 @@ export function EditGroupDialog() {
           </div>
         </div>
         <DialogFooter className="flex w-full">
-
           <Button
             type="submit"
             disabled={!groupName || groupName.length === 0}

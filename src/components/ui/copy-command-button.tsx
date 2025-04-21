@@ -11,7 +11,6 @@ export function CopyCommandButton({
   command,
   className,
 }: CopyCommandButtonProps) {
-
   return (
     <Button
       size="xs"

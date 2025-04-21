@@ -14,7 +14,7 @@ import { m002_addProxyCreatedAt } from "./migration/002-add-proxy-created-at";
 let mgr: ProxyManager | undefined = undefined;
 
 export class ProxyManager implements IFileManagerBase {
-  constructor() { }
+  constructor() {}
 
   static sharedManager(): ProxyManager {
     if (!mgr) {
@@ -34,14 +34,16 @@ export class ProxyManager implements IFileManagerBase {
       await mkdir(CONFIG_DIR, { baseDir, recursive: true });
     }
     // create file if not exist
-    const fileExist = await exists(`${CONFIG_DIR}/${PROXY_FILE_NAME}`, { baseDir });
+    const fileExist = await exists(`${CONFIG_DIR}/${PROXY_FILE_NAME}`, {
+      baseDir,
+    });
     if (!fileExist) {
       await writeTextFile(
         `${CONFIG_DIR}/${PROXY_FILE_NAME}`,
         JSON.stringify([]),
         {
           baseDir,
-        }
+        },
       );
     }
 
@@ -93,7 +95,7 @@ export class ProxyManager implements IFileManagerBase {
       JSON.stringify(cleaned),
       {
         baseDir,
-      }
+      },
     );
   }
 
@@ -104,7 +106,7 @@ export class ProxyManager implements IFileManagerBase {
       JSON.stringify(data),
       {
         baseDir,
-      }
+      },
     );
   }
 

@@ -34,7 +34,7 @@ import {
   Loader2,
   ShieldAlert,
   TrashIcon,
-  TriangleAlertIcon
+  TriangleAlertIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -106,7 +106,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       manualCommand: (proxy: IProxyData) => {
         // get the SHA-1
         const sha1 = foundCertificates.find(
-          (cert) => cert.name === proxy.hostname
+          (cert) => cert.name === proxy.hostname,
         )?.sha1;
         return `security delete-certificate -Z "${sha1}"`;
       },
@@ -138,13 +138,13 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
 
       // Find certificates
       const certificates = (await findCertificates(proxy.hostname)).filter(
-        (cert) => cert.name === proxy.hostname
+        (cert) => cert.name === proxy.hostname,
       );
       setFoundCertificates(certificates);
 
       // Check if exact match exists
       const exactMatch = certificates.find(
-        (cert) => cert.name === proxy.hostname
+        (cert) => cert.name === proxy.hostname,
       );
       setSelectedCertificate(exactMatch || null);
 
@@ -155,7 +155,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
 
       // Check certificate files
       const certFilesExist = await certManager.checkCertificateExists(
-        proxy.hostname
+        proxy.hostname,
       );
       setStepStatuses((prev) => ({
         ...prev,
@@ -224,7 +224,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
   };
 
   const everyStepCompleted = steps.every(
-    (step) => stepStatuses[step.step].completed
+    (step) => stepStatuses[step.step].completed,
   );
 
   const handleAutoDelete = async () => {
@@ -249,7 +249,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
 
       if (!success) {
         toast.error(
-          `Failed at step ${step}. Please check the error message and try again.`
+          `Failed at step ${step}. Please check the error message and try again.`,
         );
         return;
       }
@@ -310,7 +310,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                               "text-sm font-semibold flex gap-2 items-center",
                               stepStatuses[step].error && "text-destructive",
                               stepStatuses[step].completed &&
-                                "text-muted-foreground line-through"
+                                "text-muted-foreground line-through",
                             )}
                           >
                             {title}
@@ -324,7 +324,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                             className={cn(
                               "text-muted-foreground",
                               stepStatuses[step].error && "text-destructive",
-                              stepStatuses[step].completed && "line-through"
+                              stepStatuses[step].completed && "line-through",
                             )}
                           >
                             {description}
@@ -360,7 +360,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                             )}
                         </CardContent>
                       </Card>
-                    )
+                    ),
                   )}
                 </div>
 
@@ -423,7 +423,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                                 "text-sm font-semibold flex gap-2 items-center",
                                 stepStatuses[step].error && "text-destructive",
                                 stepStatuses[step].completed &&
-                                  "text-muted-foreground line-through"
+                                  "text-muted-foreground line-through",
                               )}
                             >
                               {title}
@@ -451,7 +451,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                             </div>
                           </CardContent>
                         </Card>
-                      )
+                      ),
                     )}
                   </div>
                   <div className="flex justify-end gap-2">

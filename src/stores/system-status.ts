@@ -24,11 +24,11 @@ interface SystemStatusStore {
   setIsDockerInstalled: (installed: boolean) => void;
   setIsDockerContainerRunning: (
     running: boolean,
-    containerInfo: IContainer | null
+    containerInfo: IContainer | null,
   ) => void;
   updateDockerContainerStatus: () => Promise<DockerContainerStatus>;
   checkDockerContainerStatus: (
-    dockerComposePath: string
+    dockerComposePath: string,
   ) => Promise<DockerContainerStatus>;
 }
 
@@ -59,7 +59,7 @@ const systemStatusStore = create<SystemStatusStore>((set, get) => ({
     return status;
   },
   checkDockerContainerStatus: async (
-    dockerComposePath: string
+    dockerComposePath: string,
   ): Promise<DockerContainerStatus> => {
     try {
       // Execute docker compose ps command
@@ -76,7 +76,7 @@ const systemStatusStore = create<SystemStatusStore>((set, get) => ({
 
       if (result.code !== 0) {
         console.log(
-          `Docker command failed with status ${result.code}: ${result.stderr}`
+          `Docker command failed with status ${result.code}: ${result.stderr}`,
         );
         return {
           containerInfo: null,
@@ -92,7 +92,7 @@ const systemStatusStore = create<SystemStatusStore>((set, get) => ({
       // Docker compose ps returns an array of containers with their states
       const runningContainers = containers.filter(
         (container: any) =>
-          container.State === "running" && container.Name === "ophiuchi-nginx"
+          container.State === "running" && container.Name === "ophiuchi-nginx",
       );
 
       return {

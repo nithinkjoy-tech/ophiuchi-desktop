@@ -125,13 +125,13 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
         requiresPassword: true,
       },
     ],
-    []
+    [],
   );
 
   const checkInitialStatus = async () => {
     try {
       const certExist = await certManager.checkCertificateExists(
-        proxy.hostname
+        proxy.hostname,
       );
       setCertExists(certExist);
 
@@ -235,7 +235,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
 
   useEffect(() => {
     const everyStepCompleted = steps.every(
-      (step) => stepStatuses[step.step].completed
+      (step) => stepStatuses[step.step].completed,
     );
     setEveryStepCompleted(everyStepCompleted);
   }, [stepStatuses, steps]);
@@ -269,7 +269,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
 
       if (!success) {
         toast.error(
-          `Failed at step ${step}. Please check the error message and try again.`
+          `Failed at step ${step}. Please check the error message and try again.`,
         );
         return;
       }
@@ -326,7 +326,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
               <CardTitle
                 className={cn(
                   "text-sm font-semibold flex gap-2 items-center",
-                  certExists && "text-muted-foreground"
+                  certExists && "text-muted-foreground",
                 )}
               >
                 {certificateStep.title}
@@ -377,7 +377,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                                 "text-sm font-semibold flex gap-2 items-center",
                                 stepStatuses[step].error && "text-destructive",
                                 stepStatuses[step].completed &&
-                                  "text-muted-foreground line-through"
+                                  "text-muted-foreground line-through",
                               )}
                             >
                               {title}
@@ -391,7 +391,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                               className={cn(
                                 "text-muted-foreground",
                                 stepStatuses[step].error && "text-destructive",
-                                stepStatuses[step].completed && "line-through"
+                                stepStatuses[step].completed && "line-through",
                               )}
                             >
                               {description}
@@ -432,7 +432,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                             )}
                           </CardContent>
                         </Card>
-                      )
+                      ),
                     )}
                   </div>
                   <div className="flex justify-end gap-2">
@@ -485,7 +485,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                               "text-sm font-semibold flex gap-2 items-center",
                               stepStatuses[step].error && "text-destructive",
                               stepStatuses[step].completed &&
-                                "text-muted-foreground line-through"
+                                "text-muted-foreground line-through",
                             )}
                           >
                             {title}

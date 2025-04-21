@@ -138,14 +138,14 @@ export function AppSidebar() {
                       className={cn(
                         "rounded-md hover:bg-accent-foreground/5",
                         selectedGroup?.id === group.id &&
-                          "bg-accent-foreground/10 border-[0.5px] border-b-black/10 border-t-white/20 hover:bg-accent-foreground/10"
+                          "bg-accent-foreground/10 border-[0.5px] border-b-black/10 border-t-white/20 hover:bg-accent-foreground/10",
                       )}
                     >
                       <Link href={isMainPage ? "#" : "/"}>
                         {/* Purposely used div here because SidebarMenuSubItem is an <a> component and it will produce an error. */}
                         <div
                           className={cn(
-                            "p-1 px-2 cursor-pointer flex justify-between items-center text-xs"
+                            "p-1 px-2 cursor-pointer flex justify-between items-center text-xs",
                           )}
                           onClick={() => setSelectedGroup(group)}
                         >

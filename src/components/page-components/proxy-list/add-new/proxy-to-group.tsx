@@ -62,7 +62,7 @@ export function AddProxyToGroupDialog({ onDone }: { onDone: () => void }) {
               <TableBody>
                 {totalProxyList.map((proxyItem) => {
                   const isAlreadyAdded = proxyList.find(
-                    (item) => item.hostname === proxyItem.hostname
+                    (item) => item.hostname === proxyItem.hostname,
                   );
                   return (
                     <TableRow key={proxyItem.hostname}>

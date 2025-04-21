@@ -69,7 +69,7 @@ function GroupManageDropdown({ item }: { item: IProxyData }) {
         <DropdownMenuLabel>Manage Proxy in Group</DropdownMenuLabel>
         {groupList.map((group) => {
           const isChecked = !!group.includedHosts.find(
-            (host) => host === item.hostname
+            (host) => host === item.hostname,
           );
           const isNoGroup = group.isNoGroup;
           const isSelectedGroup = group.id === selectedGroup?.id;
@@ -91,7 +91,7 @@ function GroupManageDropdown({ item }: { item: IProxyData }) {
                 <div
                   className={cn(
                     "flex items-center gap-2",
-                    isSelectedGroup ? "underline" : ""
+                    isSelectedGroup ? "underline" : "",
                   )}
                 >
                   {group.name}

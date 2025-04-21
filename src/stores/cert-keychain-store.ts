@@ -19,8 +19,13 @@ export interface CertKeychainStore {
   homeDir: string;
   appDataDir: string;
   init: () => Promise<void>;
-  findExcatCertificateByName: (name: string) => Promise<Certificate | undefined>;
-  checkCertExistOnKeychain: (name: string, shouldFetch?: boolean) => Promise<boolean>;
+  findExcatCertificateByName: (
+    name: string,
+  ) => Promise<Certificate | undefined>;
+  checkCertExistOnKeychain: (
+    name: string,
+    shouldFetch?: boolean,
+  ) => Promise<boolean>;
   removeCertFromKeychain: (name: string) => Promise<void>;
   removeCertBySha1: (sha1: string) => Promise<void>;
   addCertToKeychain: (pemFilePath: string) => Promise<void>;
@@ -33,30 +38,33 @@ const CACHE_TIME = 5000;
 
 function parseCertificateOutput(output: string): Certificate[] {
   const certificates: Certificate[] = [];
-  const blocks = output.split('SHA-256 hash:').filter(block => block.trim());
+  const blocks = output.split("SHA-256 hash:").filter((block) => block.trim());
 
   for (const block of blocks) {
     try {
-      const lines = block.split('\n').map(line => line.trim());
+      const lines = block.split("\n").map((line) => line.trim());
       const cert: Partial<Certificate> = {
         attributes: {},
       };
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (line.startsWith('SHA-1 hash:')) {
-          cert.sha1 = line.split(':')[1].trim();
-        } else if (i === 0) { // First line is SHA-256
+        if (line.startsWith("SHA-1 hash:")) {
+          cert.sha1 = line.split(":")[1].trim();
+        } else if (i === 0) {
+          // First line is SHA-256
           cert.sha256 = line.trim();
-        } else if (line.startsWith('keychain:')) {
-          cert.keychain = line.split(':')[1].trim().replace(/"/g, '');
+        } else if (line.startsWith("keychain:")) {
+          cert.keychain = line.split(":")[1].trim().replace(/"/g, "");
         } else if (line.includes('"alis"<blob>=')) {
-          cert.name = line.split('=')[1].trim().replace(/"/g, '');
+          cert.name = line.split("=")[1].trim().replace(/"/g, "");
         } else if (line.includes('"subj"<blob>=')) {
-          cert.subject = line.split('=')[1].trim().replace(/"/g, '');
-        } else if (line.includes('<blob>=')) {
-          const [key, value] = line.split('<blob>=');
-          cert.attributes![key.trim().replace(/"/g, '')] = value.trim().replace(/"/g, '');
+          cert.subject = line.split("=")[1].trim().replace(/"/g, "");
+        } else if (line.includes("<blob>=")) {
+          const [key, value] = line.split("<blob>=");
+          cert.attributes![key.trim().replace(/"/g, "")] = value
+            .trim()
+            .replace(/"/g, "");
         }
       }
 
@@ -64,7 +72,7 @@ function parseCertificateOutput(output: string): Certificate[] {
         certificates.push(cert as Certificate);
       }
     } catch (error) {
-      console.error('Failed to parse certificate block:', error);
+      console.error("Failed to parse certificate block:", error);
     }
   }
 
@@ -75,66 +83,66 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   watcher: null,
   certOnKeychain: {},
   foundCertificates: [],
-  homeDir: '',
-  appDataDir: '',
+  homeDir: "",
+  appDataDir: "",
   init: async () => {
     const homeDirPath = await homeDir();
     const appDataDirPath = await appDataDir();
     set({ homeDir: homeDirPath, appDataDir: appDataDirPath });
     if (get().watcher) {
-      console.warn('Watcher already exists');
-      // call unwatchFn 
+      console.warn("Watcher already exists");
+      // call unwatchFn
       get().watcher?.();
     }
-    const unWatchFn = await watch('cert', (event) => {
-      console.log('Event:', event);
-      console.log(`Kind`, (event as any).kind);
-    }, {
-      baseDir: BaseDirectory.AppData,
-      delayMs: 1000,
-      recursive: true,
-    });
+    const unWatchFn = await watch(
+      "cert",
+      (event) => {
+        console.log("Event:", event);
+        console.log(`Kind`, (event as any).kind);
+      },
+      {
+        baseDir: BaseDirectory.AppData,
+        delayMs: 1000,
+        recursive: true,
+      },
+    );
 
     set({ watcher: unWatchFn });
   },
   findCertificates: async (name: string) => {
     try {
-      const output = await invoke<string>('find_certificates', { name });
+      const output = await invoke<string>("find_certificates", { name });
       const certificates = parseCertificateOutput(output);
       set({ foundCertificates: certificates });
       return certificates;
     } catch (error) {
-      console.error('Failed to find certificates:', error);
+      console.error("Failed to find certificates:", error);
       return [];
     }
   },
   /**
    * Check if the certificate exists on the keychain.
-   * @param name 
-   * @param shouldFetch 
-   * @returns 
+   * @param name
+   * @param shouldFetch
+   * @returns
    */
   checkCertExistOnKeychain: async (name, shouldFetch = false) => {
     const now = Date.now();
     const cached = get().certOnKeychain[name];
 
-    if (
-      !shouldFetch &&
-      cached &&
-      now - cached.timestamp < CACHE_TIME
-    ) {
+    if (!shouldFetch && cached && now - cached.timestamp < CACHE_TIME) {
       console.log(`Cached: ${name}`, cached.exists);
       return cached.exists;
     }
 
     const exists = await get().findExcatCertificateByName(name);
 
-    set(state => ({
+    set((state) => ({
       ...state,
       certOnKeychain: {
         ...state.certOnKeychain,
-        [name]: { exists: !!exists, timestamp: now }
-      }
+        [name]: { exists: !!exists, timestamp: now },
+      },
     }));
 
     return !!exists;
@@ -142,20 +150,20 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
 
   /**
    * Find exact certificate by name.
-   * @param name 
-   * @returns 
+   * @param name
+   * @returns
    */
   findExcatCertificateByName: async (name: string) => {
     const certificates = await get().findCertificates(name);
-    return certificates.find(cert => cert.name === name);
+    return certificates.find((cert) => cert.name === name);
   },
   /**
    * Remove requires the name of the certificate.
-   * @param name 
+   * @param name
    */
   removeCertFromKeychain: async (name) => {
     const certificates = await get().findCertificates(name);
-    const exactMatch = certificates.find(cert => cert.name === name);
+    const exactMatch = certificates.find((cert) => cert.name === name);
 
     if (!exactMatch) {
       throw new Error(`Certificate not found: ${name}`);
@@ -163,16 +171,16 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
 
     await get().removeCertBySha1(exactMatch.sha1);
 
-    set(state => ({
+    set((state) => ({
       ...state,
       certOnKeychain: {
         ...state.certOnKeychain,
-        [name]: { exists: false, timestamp: Date.now() }
-      }
+        [name]: { exists: false, timestamp: Date.now() },
+      },
     }));
   },
   removeCertBySha1: async (sha1: string) => {
-    await invoke('remove_cert_by_sha1', { sha1 });
+    await invoke("remove_cert_by_sha1", { sha1 });
   },
   /**
    * Adding requires path to the pem file.
@@ -181,7 +189,7 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   addCertToKeychain: async (name) => {
     const appDataDirPath = get().appDataDir;
     const pemFilePath = `${appDataDirPath}/cert/${name}/cert.pem`;
-    await invoke('add_cert_to_keychain', {
+    await invoke("add_cert_to_keychain", {
       pem_file_path: pemFilePath,
     });
   },
@@ -199,5 +207,5 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
 
     const command = `security add-trusted-cert -k ${keychainPath} \"${pemFilePath}\"`;
     return command;
-  }
+  },
 }));

@@ -52,9 +52,11 @@ export class CertificateManager {
   }
 
   async cleanUp() {
-    if (await exists(`conf/conf.d`, {
-      baseDir: BaseDirectory.AppData,
-    })) {
+    if (
+      await exists(`conf/conf.d`, {
+        baseDir: BaseDirectory.AppData,
+      })
+    ) {
       await remove(`conf/conf.d`, {
         baseDir: BaseDirectory.AppData,
         recursive: true,
@@ -81,10 +83,10 @@ export class CertificateManager {
 
     // read nginx conf file from bundle
     const nginxDefaultConfigPath = await resolveResource(
-      "bundle/templates/default.nginx.conf.template"
+      "bundle/templates/default.nginx.conf.template",
     );
     const nginxDefaultConfigTemplate = await readTextFile(
-      nginxDefaultConfigPath
+      nginxDefaultConfigPath,
     );
 
     await writeTextFile(`conf/nginx.conf`, nginxDefaultConfigTemplate, {
@@ -93,19 +95,19 @@ export class CertificateManager {
 
     // read nginx file from bundle
     const nginxConfigPath = await resolveResource(
-      "bundle/templates/server.conf.template"
+      "bundle/templates/server.conf.template",
     );
     const nginxConfigTemplate = await readTextFile(nginxConfigPath);
 
     // replace all occurences of {DOMAIN_NAME} with hostname
     const upstreamSuffixUpdated = nginxConfigTemplate.replace(
       /{UPSTREAM_SUFFIX}/g,
-      hostname.replace(/\./g, "_")
+      hostname.replace(/\./g, "_"),
     );
     // replace all occurences of {DOMAIN_NAME} with hostname
     const nginxConfig = upstreamSuffixUpdated.replace(
       /{DOMAIN_NAME}/g,
-      hostname
+      hostname,
     );
     // replace all occurences of {PORT} with port
     const nginxConfigWithPort = nginxConfig.replace(/{PORT}/g, port.toString());

@@ -37,7 +37,7 @@ const formSchema = z.object({
       })
       .int()
       .min(1)
-      .max(65535)
+      .max(65535),
   ),
   hostname: z.string().min(3).max(64),
 });
@@ -64,10 +64,10 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
   const checkHostnameExists = useCallback(
     (hostname: string) => {
       setHostnameExists(
-        totalProxyList.some((endpoint) => endpoint.hostname === hostname)
+        totalProxyList.some((endpoint) => endpoint.hostname === hostname),
       );
     },
-    [totalProxyList]
+    [totalProxyList],
   );
 
   const updateCanSubmit = useCallback(() => {
@@ -194,7 +194,7 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
                         onChange={(e) => {
                           const sanitizedHostname = e.target.value.replace(
                             /[^a-z0-9\-\.]/g,
-                            ""
+                            "",
                           );
                           field.onChange(sanitizedHostname);
                           updateCanSubmit();
@@ -215,9 +215,7 @@ export function AddProxyDialog({ onDone }: { onDone: () => void }) {
           {hostErrorMessage ? (
             <div className="text-red-500/50 text-xs">{hostErrorMessage}</div>
           ) : (
-            <div className="text-xs opacity-0">
-              .
-            </div>
+            <div className="text-xs opacity-0">.</div>
           )}
         </div>
         <DialogFooter>

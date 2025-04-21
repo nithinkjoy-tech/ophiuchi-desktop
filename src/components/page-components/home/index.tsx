@@ -30,9 +30,7 @@ export function HomeComponent() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2   ">
       <div className="py-4">
-        <h1 className="text-2xl tracking-tight font-semibold  ">
-          Ophiuchi
-        </h1>
+        <h1 className="text-2xl tracking-tight font-semibold  ">Ophiuchi</h1>
         <p className="  text-sm">
           Start your local HTTPS proxy server with docker.
         </p>

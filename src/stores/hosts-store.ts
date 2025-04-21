@@ -35,4 +35,4 @@ export const hostsStore = create<HostsStore>()((set) => ({
       throw e;
     }
   },
-})); 
+}));

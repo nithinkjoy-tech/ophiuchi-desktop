@@ -53,8 +53,8 @@ export default function DockerLogModal({
               This dialog shows the logs of the docker command that was
               executed.
               <br />
-              To see detailed logs of the docker command, check the detailed logs
-              checkbox.
+              To see detailed logs of the docker command, check the detailed
+              logs checkbox.
               <br />
               <span>You can close the dialog anytime.</span>
             </DialogDescription>

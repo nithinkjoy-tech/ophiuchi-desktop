@@ -26,7 +26,7 @@ export function SystemSetupProvider(props: any) {
       updateDockerContainerStatus();
     },
 
-    isDockerInstalled ? 3000 : null
+    isDockerInstalled ? 3000 : null,
   );
 
   useEffect(() => {
