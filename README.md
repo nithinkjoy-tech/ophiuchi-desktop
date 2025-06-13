@@ -9,31 +9,58 @@
 
 
 
+# Download the Built App: 
+
+The latest built app is available at the website:
+
+🚀 [Ophiuchi Official Website](https://www.ophiuchi.dev/)
+
+<img width="1392" alt="Screenshot 2025-05-15 at 2 26 24 PM" src="https://github.com/user-attachments/assets/70bc9027-43cb-4346-b960-04fd68aba03d" />
+
 --- 
 
 ## Related Links
-
-### Download the Built App: 
-
-🚀 [Ophiuchi Official Website](https://www.ophiuchi.dev/)
 
 ### Join Discord for Support:
 
 💪 [Discord Channel](https://discord.gg/fpp8kNyPtz)
 
+### Where Ophiuchi was Showcased
+
+[dev.to Article](https://dev.to/cheeselemon/ssl-in-localhost-takes-5-seconds-now-460i)
+
+[daily.dev Article](https://app.daily.dev/posts/ssl-in-localhost-takes-5-seconds-now--zhuzgvwxh)
+
+[GeekNews Article(ko)](https://news.hada.io/topic?id=20888)
+
+[RaqibNur's Bookmarks](https://www.raqibnur.com/bookmark)
+
 ---
 
-# Development
+# Build from Source & Run Locally
+
+1. See [Tauri's Docs](https://v2.tauri.app/start/prerequisites/) to prepare for tauri app development.
+
+2. Clone the repo and run: 
+
+```
+npm install
+```
+
+3. To build and run the app: 
 
 ```
 npm run tauri dev
 ```
 
+### Building the App 
+
 ```
 CI=true npm run tauri build 
 ```
 
-### Release with debuggable build
+### Debuggable build
+
 ```
 npm run tauri build -- --debug
 ```
@@ -41,6 +68,7 @@ npm run tauri build -- --debug
 ### Build macOS App Bundles
 
 Tauri v2 build command for macOS app bundles
+
 
 ```
 npm run tauri build -- --bundles app
