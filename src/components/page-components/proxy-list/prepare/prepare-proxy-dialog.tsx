@@ -234,6 +234,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   };
 
   useEffect(() => {
+    console.log({ steps, stepStatuses });
     const everyStepCompleted = steps.every(
       (step) => stepStatuses[step.step].completed,
     );

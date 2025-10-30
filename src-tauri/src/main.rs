@@ -19,49 +19,83 @@ fn get_env(name: &str) -> String {
 
 #[tauri::command(rename_all = "snake_case")]
 fn add_line_to_hosts(hostname: String, password: String) {
-    // Construct the line to add to /etc/hosts
     let line_to_add = format!("127.0.0.1 {}", hostname);
-    let _comment = format!("# Added by the Ophiuchi app for {}", hostname);
 
-    // Check if the line already exists in /etc/hosts
     if !host_line_exists(&line_to_add) {
-        // Append the new line to /etc/hosts with sudo
-        append_to_hosts_with_sudo(&line_to_add, &password);
+        #[cfg(target_os = "windows")]
+        append_to_hosts_windows(&line_to_add);
 
-        // Add the comment above the line
-        // add_comment_above_line(&line_to_add, &comment, &password);
+        #[cfg(not(target_os = "windows"))]
+        append_to_hosts_with_sudo(&line_to_add, &password);
     } else {
-        println!("Line already exists in /etc/hosts: {}", line_to_add);
+        println!("Line already exists in hosts file: {}", line_to_add);
     }
 }
 
 #[tauri::command(rename_all = "snake_case")]
 fn delete_line_from_hosts(hostname: String, password: String) {
     backup_hosts_file(&password);
-    find_and_delete_line_hosts_with_sudo(&hostname, &password);
+    find_and_delete_line_hosts(&hostname, &password);
 }
 
-fn find_and_delete_line_hosts_with_sudo(hostname: &str, password: &str) {
-    let escaped_hostname = regex::escape(hostname);
-    let sed_command = format!(
-        "echo '{}' | sudo -S sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*{}$/d' /etc/hosts",
-        password, escaped_hostname
-    );
+fn find_and_delete_line_hosts(hostname: &str, password: &str) {
+    #[cfg(target_os = "windows")]
+    {
+        let hosts_path = r"C:\Windows\System32\drivers\etc\hosts";
+        let escaped_hostname = regex::escape(hostname);
+        
+        // Read current hosts file
+        if let Ok(content) = std::fs::read_to_string(hosts_path) {
+            let new_content: Vec<String> = content
+                .lines()
+                .filter(|line| {
+                    let re = regex::Regex::new(&format!(r"^127\.0\.0\.1\s+{}\s*$", escaped_hostname)).unwrap();
+                    !re.is_match(line.trim())
+                })
+                .map(|s| s.to_string())
+                .collect();
+            
+            // Write back using PowerShell with admin rights
+            let new_content_str = new_content.join("\n");
+            let ps_command = format!(
+                "$content = @'\n{}\n'@; Set-Content -Path '{}' -Value $content -Force",
+                new_content_str, hosts_path
+            );
+            
+            let status = Command::new("powershell")
+                .arg("-Command")
+                .arg(&format!("Start-Process powershell -Verb RunAs -ArgumentList '-Command', '{}' -Wait", ps_command.replace("'", "''")))
+                .status();
+            
+            match status {
+                Ok(s) if s.success() => println!("Hostname {} deleted from hosts file", hostname),
+                _ => eprintln!("Error deleting hostname from hosts file."),
+            }
+        }
+    }
 
-    let status = Command::new("sh")
-        .arg("-c")
-        .arg(sed_command)
-        .status()
-        .expect("Failed to run shell command");
+    #[cfg(not(target_os = "windows"))]
+    {
+        let escaped_hostname = regex::escape(hostname);
+        let sed_command = format!(
+            "echo '{}' | sudo -S sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*{}$/d' /etc/hosts",
+            password, escaped_hostname
+        );
 
-    if status.success() {
-        println!("Hostname {} deleted from /etc/hosts", hostname);
-    } else {
-        eprintln!("Error deleting hostname from /etc/hosts.");
+        let status = Command::new("sh")
+            .arg("-c")
+            .arg(sed_command)
+            .status()
+            .expect("Failed to run shell command");
+
+        if status.success() {
+            println!("Hostname {} deleted from /etc/hosts", hostname);
+        } else {
+            eprintln!("Error deleting hostname from /etc/hosts.");
+        }
     }
 }
 
-// Check if the line already exists in /etc/hosts
 fn host_line_exists(line: &str) -> bool {
     if let Ok(hosts) = read_hosts_file() {
         for host in hosts.lines() {
@@ -73,9 +107,13 @@ fn host_line_exists(line: &str) -> bool {
     false
 }
 
-// Read the contents of /etc/hosts
 fn read_hosts_file() -> io::Result<String> {
+    #[cfg(target_os = "windows")]
+    let path = r"C:\Windows\System32\drivers\etc\hosts";
+
+    #[cfg(not(target_os = "windows"))]
     let path = "/etc/hosts";
+
     let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
@@ -85,43 +123,86 @@ fn read_hosts_file() -> io::Result<String> {
 fn backup_hosts_file(password: &str) {
     let cur_day = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
 
-    if let Some(home_dir) = env::var_os("HOME") {
-        if let Some(home_dir_str) = home_dir.to_str() {
-            // backup dir is home/hosts.bak/{cur_day}
-            let backup_dir = format!("{}/ophiuchi.hosts.bak/", home_dir_str);
-            // mkdir if not exists (doesn't require sudo?)
-            let mkdir_command = format!("mkdir -p {}", backup_dir);
-            let status = Command::new("sh")
-                .arg("-c")
-                .arg(mkdir_command)
-                .status()
-                .expect("Failed to run shell command");
+    #[cfg(target_os = "windows")]
+    {
+        if let Some(user_profile) = env::var_os("USERPROFILE") {
+            if let Some(profile_str) = user_profile.to_str() {
+                let backup_dir = format!("{}\\ophiuchi.hosts.bak\\", profile_str);
+                
+                // Create directory
+                let _ = std::fs::create_dir_all(&backup_dir);
+                
+                let backup_path = format!("{}hosts.bak.{}", backup_dir, cur_day);
+                let hosts_path = r"C:\Windows\System32\drivers\etc\hosts";
+                
+                // Copy hosts file
+                match std::fs::copy(hosts_path, &backup_path) {
+                    Ok(_) => println!("Backup created: {}", backup_path),
+                    Err(e) => eprintln!("Error creating backup: {}", e),
+                }
+            }
+        }
+    }
 
-            if status.success() {
-                println!("Backup directory created: {}", backup_dir);
-                // copy /etc/hosts to backup_dir/hosts.bak.{cur_day}
-                let backup_command = format!(
-                    "echo '{}' | sudo -S -- sh -c 'cp /etc/hosts {}/hosts.bak.{}'",
-                    password, backup_dir, cur_day
-                );
+    #[cfg(not(target_os = "windows"))]
+    {
+        if let Some(home_dir) = env::var_os("HOME") {
+            if let Some(home_dir_str) = home_dir.to_str() {
+                let backup_dir = format!("{}/ophiuchi.hosts.bak/", home_dir_str);
+                let mkdir_command = format!("mkdir -p {}", backup_dir);
                 let status = Command::new("sh")
                     .arg("-c")
-                    .arg(backup_command)
+                    .arg(mkdir_command)
                     .status()
                     .expect("Failed to run shell command");
 
                 if status.success() {
-                    println!("Backup of /etc/hosts created.");
+                    println!("Backup directory created: {}", backup_dir);
+                    let backup_command = format!(
+                        "echo '{}' | sudo -S -- sh -c 'cp /etc/hosts {}/hosts.bak.{}'",
+                        password, backup_dir, cur_day
+                    );
+                    let status = Command::new("sh")
+                        .arg("-c")
+                        .arg(backup_command)
+                        .status()
+                        .expect("Failed to run shell command");
+
+                    if status.success() {
+                        println!("Backup of /etc/hosts created.");
+                    } else {
+                        eprintln!("Error creating backup of /etc/hosts.");
+                    }
                 } else {
-                    eprintln!("Error creating backup of /etc/hosts.");
+                    eprintln!("Error creating backup directory.");
                 }
-            } else {
-                eprintln!("Error creating backup directory.");
             }
         }
     }
 }
 
+#[cfg(target_os = "windows")]
+fn append_to_hosts_windows(line: &str) {
+    let hosts_path = r"C:\Windows\System32\drivers\etc\hosts";
+    
+    // PowerShell command to append with admin rights
+    let ps_command = format!(
+        "Add-Content -Path '{}' -Value '{}' -Force",
+        hosts_path, line
+    );
+    
+    let status = Command::new("powershell")
+        .arg("-Command")
+        .arg(&format!("Start-Process powershell -Verb RunAs -ArgumentList '-Command', '{}' -Wait", ps_command.replace("'", "''")))
+        .status();
+    
+    match status {
+        Ok(s) if s.success() => println!("Line added to hosts file: {}", line),
+        _ => eprintln!("Error appending to hosts file."),
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
 fn append_to_hosts_with_sudo(line: &str, password: &str) {
     backup_hosts_file(password);
 
@@ -145,121 +226,183 @@ fn append_to_hosts_with_sudo(line: &str, password: &str) {
 
 #[tauri::command(rename_all = "snake_case")]
 fn add_cert_to_keychain(pem_file_path: String) -> Result<(), String> {
-    // Get the user's home directory
-    if let Some(home_dir) = env::var_os("HOME") {
-        if let Some(home_dir_str) = home_dir.to_str() {
-            // Create the full path to the keychain file
-            let keychain_path = format!("{}/Library/Keychains/login.keychain-db", home_dir_str);
+    #[cfg(target_os = "windows")]
+    {
+        // Import certificate to Windows certificate store
+        let ps_command = format!(
+            "Import-Certificate -FilePath '{}' -CertStoreLocation Cert:\\CurrentUser\\Root",
+            pem_file_path
+        );
 
-            // Create a command to execute
-            let mut command = Command::new("security");
+        let output = Command::new("powershell")
+            .arg("-NoProfile")
+            .arg("-Command")
+            .arg(&format!("Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile', '-Command', '{}' -Wait", ps_command.replace("'", "''")))
+            .output()
+            .map_err(|e| format!("Failed to execute command: {}", e))?;
 
-            // Add arguments to the command
-            command
-                .arg("add-trusted-cert")
-                // .arg("-d")
-                .arg("-k")
-                .arg(&keychain_path) // Use the resolved keychain path
-                .arg(&pem_file_path); // Use the provided PEM file path
+        if output.status.success() {
+            println!("Certificate added successfully.");
+            Ok(())
+        } else {
+            Err(format!("Error adding certificate: {}", String::from_utf8_lossy(&output.stderr)))
+        }
+    }
 
-            // Execute the command
-            let output = command.output().expect("Failed to execute command");
+    #[cfg(not(target_os = "windows"))]
+    {
+        if let Some(home_dir) = env::var_os("HOME") {
+            if let Some(home_dir_str) = home_dir.to_str() {
+                let keychain_path = format!("{}/Library/Keychains/login.keychain-db", home_dir_str);
 
-            // Check the command's exit status
-            if output.status.success() {
-                println!("Certificate added successfully.");
-                Ok(())
+                let mut command = Command::new("security");
+                command
+                    .arg("add-trusted-cert")
+                    .arg("-k")
+                    .arg(&keychain_path)
+                    .arg(&pem_file_path);
+
+                let output = command.output().expect("Failed to execute command");
+
+                if output.status.success() {
+                    println!("Certificate added successfully.");
+                    Ok(())
+                } else {
+                    eprintln!("Error: {:?}", output);
+                    Err("Error adding certificate: reason: ".to_string()
+                        + &String::from_utf8_lossy(&output.stderr))
+                }
             } else {
-                eprintln!("Error: {:?}", output);
-                Err("Error adding certificate: reason: ".to_string()
-                    + &String::from_utf8_lossy(&output.stderr))
+                eprintln!("Failed to convert home directory to string.");
+                Err("Failed to convert home directory to string".to_string())
             }
         } else {
-            eprintln!("Failed to convert home directory to string.");
-            Err("Failed to convert home directory to string".to_string())
+            eprintln!("Home directory not found.");
+            Err("Home directory not found".to_string())
         }
-    } else {
-        eprintln!("Home directory not found.");
-        Err("Home directory not found".to_string())
     }
 }
 
 #[tauri::command(rename_all = "snake_case")]
 fn remove_cert_from_keychain(name: String) -> Result<(), String> {
-    // Get the user's home directory
-    let home_dir = env::var_os("HOME").ok_or_else(|| "Home directory not found.".to_string())?;
-    let home_dir_str = home_dir
-        .to_str()
-        .ok_or_else(|| "Failed to convert home directory to string.".to_string())?;
+    #[cfg(target_os = "windows")]
+    {
+        let ps_command = format!(
+            "$cert = Get-ChildItem -Path Cert:\\CurrentUser\\Root | Where-Object {{ $_.Subject -like '*{}*' }} | Select-Object -First 1; if ($cert) {{ Remove-Item -Path $cert.PSPath -Force }}",
+            name
+        );
 
-    // Create the full path to the keychain file
-    let keychain_path = format!("{}/Library/Keychains/login.keychain-db", home_dir_str);
+        let output = Command::new("powershell")
+            .arg("-NoProfile")
+            .arg("-Command")
+            .arg(&format!("Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile', '-Command', '{}' -Wait", ps_command.replace("'", "''")))
+            .output()
+            .map_err(|e| format!("Failed to execute command: {}", e))?;
 
-    // First find the exact certificate hash
-    let find_command = format!(
-        "security find-certificate -c '{}' -Z | grep SHA-1 | awk '{{print $NF}}'",
-        name
-    );
-
-    // Get the hash of the exact certificate
-    let hash_output = Command::new("sh")
-        .arg("-c")
-        .arg(&find_command)
-        .output()
-        .map_err(|e| format!("Failed to execute find command: {}", e))?;
-
-    if !hash_output.status.success() {
-        return Err("Certificate not found".to_string());
+        if output.status.success() {
+            println!("Certificate removed successfully.");
+            Ok(())
+        } else {
+            let error = String::from_utf8_lossy(&output.stderr);
+            Err(format!("Failed to remove certificate: {}", error))
+        }
     }
 
-    let hash = String::from_utf8_lossy(&hash_output.stdout)
-        .trim()
-        .to_string();
-    if hash.is_empty() {
-        return Err("Certificate not found".to_string());
-    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let home_dir = env::var_os("HOME").ok_or_else(|| "Home directory not found.".to_string())?;
+        let home_dir_str = home_dir
+            .to_str()
+            .ok_or_else(|| "Failed to convert home directory to string.".to_string())?;
 
-    // Delete the certificate using the exact hash
-    let delete_command = format!("security delete-certificate -Z '{}'", hash);
+        let keychain_path = format!("{}/Library/Keychains/login.keychain-db", home_dir_str);
 
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(&delete_command)
-        .output()
-        .map_err(|e| format!("Failed to execute delete command: {}", e))?;
+        let find_command = format!(
+            "security find-certificate -c '{}' -Z | grep SHA-1 | awk '{{print $NF}}'",
+            name
+        );
 
-    // Check the command's exit status and provide detailed error message
-    if output.status.success() {
-        println!("Certificate removed successfully.");
-        Ok(())
-    } else {
-        let error = String::from_utf8_lossy(&output.stderr);
-        Err(format!("Failed to remove certificate: {}", error))
+        let hash_output = Command::new("sh")
+            .arg("-c")
+            .arg(&find_command)
+            .output()
+            .map_err(|e| format!("Failed to execute find command: {}", e))?;
+
+        if !hash_output.status.success() {
+            return Err("Certificate not found".to_string());
+        }
+
+        let hash = String::from_utf8_lossy(&hash_output.stdout)
+            .trim()
+            .to_string();
+        if hash.is_empty() {
+            return Err("Certificate not found".to_string());
+        }
+
+        let delete_command = format!("security delete-certificate -Z '{}'", hash);
+
+        let output = Command::new("sh")
+            .arg("-c")
+            .arg(&delete_command)
+            .output()
+            .map_err(|e| format!("Failed to execute delete command: {}", e))?;
+
+        if output.status.success() {
+            println!("Certificate removed successfully.");
+            Ok(())
+        } else {
+            let error = String::from_utf8_lossy(&output.stderr);
+            Err(format!("Failed to remove certificate: {}", error))
+        }
     }
 }
 
 #[tauri::command(rename_all = "snake_case")]
 fn cert_exist_on_keychain(name: String) -> Result<bool, String> {
-    // Create a command to execute
-    let mut command = Command::new("security");
+    #[cfg(target_os = "windows")]
+    {
+        let command = format!(
+            "Get-ChildItem -Path Cert:\\CurrentUser\\Root | Where-Object {{ $_.Subject -like '*{}*' }}",
+            name
+        );
 
-    // Add arguments to the command. Find Exact Certificate
-    command
-        .arg("find-certificate")
-        .arg("-c")
-        .arg(name)
-        .arg("-Z");
+        let output = Command::new("powershell")
+            .arg("-NoProfile")
+            .arg("-NonInteractive")
+            .arg("-Command")
+            .arg(&command)
+            .output()
+            .map_err(|e| format!("Failed to execute command: {}", e))?;
 
-    // Execute the command
-    let output = command.output().expect("Failed to execute command");
+        if output.status.success() {
+            let result = String::from_utf8_lossy(&output.stdout);
+            let exists = !result.trim().is_empty();
+            println!("Certificate {} on certificate store.", if exists { "found" } else { "not found" });
+            Ok(exists)
+        } else {
+            println!("Certificate not found on certificate store.");
+            Ok(false)
+        }
+    }
 
-    // Check the command's exit status
-    if output.status.success() {
-        println!("Certificate found on keychain.");
-        Ok(true)
-    } else {
-        println!("Certificate not found on keychain.");
-        Ok(false)
+    #[cfg(not(target_os = "windows"))]
+    {
+        let mut command = Command::new("security");
+        command
+            .arg("find-certificate")
+            .arg("-c")
+            .arg(name)
+            .arg("-Z");
+
+        let output = command.output().expect("Failed to execute command");
+
+        if output.status.success() {
+            println!("Certificate found on keychain.");
+            Ok(true)
+        } else {
+            println!("Certificate not found on keychain.");
+            Ok(false)
+        }
     }
 }
 
@@ -279,8 +422,12 @@ fn check_docker_installed() -> Result<bool, String> {
     }
 }
 
-#[tauri::command[rename_all = "snake_case"]]
+#[tauri::command(rename_all = "snake_case")]
 fn open_finder_or_explorer(path: String) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    let output = Command::new("explorer").arg(path.clone()).output();
+
+    #[cfg(not(target_os = "windows"))]
     let output = Command::new("open").arg(path.clone()).output();
 
     match output {
@@ -321,39 +468,92 @@ fn get_hosts_file_context() -> Result<String, String> {
 
 #[tauri::command(rename_all = "snake_case")]
 fn find_certificates(name: String) -> Result<String, String> {
-    // Create and execute the command
-    let command = format!("security find-certificate -a -c {} -Z", name);
+    #[cfg(target_os = "windows")]
+    {
+        let command = format!(
+            "Get-ChildItem -Path Cert:\\CurrentUser\\Root | Where-Object {{ $_.Subject -like '*{}*' }} | Format-List Subject, Thumbprint, NotAfter, NotBefore, Issuer",
+            name
+        );
 
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(&command)
-        .output()
-        .map_err(|e| format!("Failed to execute find command: {}", e))?;
+        let output = Command::new("powershell")
+            .arg("-NoProfile")
+            .arg("-NonInteractive")
+            .arg("-Command")
+            .arg(&command)
+            .output()
+            .map_err(|e| format!("Failed to execute find command: {}", e))?;
 
-    if !output.status.success() {
-        return Err("Failed to find certificates".to_string());
+        if !output.status.success() {
+            let error = String::from_utf8_lossy(&output.stderr).to_string();
+            return Err(format!("Failed to find certificates: {}", error));
+        }
+
+        let result = String::from_utf8_lossy(&output.stdout).to_string();
+        Ok(result)
     }
 
-    let result = String::from_utf8_lossy(&output.stdout).to_string();
-    Ok(result)
+    #[cfg(not(target_os = "windows"))]
+    {
+        let command = format!("security find-certificate -a -c {} -Z", name);
+
+        let output = Command::new("sh")
+            .arg("-c")
+            .arg(&command)
+            .output()
+            .map_err(|e| format!("Failed to execute find command: {}", e))?;
+
+        if !output.status.success() {
+            return Err("Failed to find certificates".to_string());
+        }
+
+        let result = String::from_utf8_lossy(&output.stdout).to_string();
+        Ok(result)
+    }
 }
 
 #[tauri::command(rename_all = "snake_case")]
 fn remove_cert_by_sha1(sha1: String) -> Result<(), String> {
-    let delete_command = format!("security delete-certificate -Z '{}'", sha1);
+    #[cfg(target_os = "windows")]
+    {
+        // On Windows, use thumbprint to remove certificate
+        let ps_command = format!(
+            "$cert = Get-ChildItem -Path Cert:\\CurrentUser\\Root | Where-Object {{ $_.Thumbprint -eq '{}' }}; if ($cert) {{ Remove-Item -Path $cert.PSPath -Force }}",
+            sha1
+        );
 
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(&delete_command)
-        .output()
-        .map_err(|e| format!("Failed to execute delete command: {}", e))?;
+        let output = Command::new("powershell")
+            .arg("-NoProfile")
+            .arg("-Command")
+            .arg(&format!("Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile', '-Command', '{}' -Wait", ps_command.replace("'", "''")))
+            .output()
+            .map_err(|e| format!("Failed to execute delete command: {}", e))?;
 
-    if output.status.success() {
-        println!("Certificate removed successfully.");
-        Ok(())
-    } else {
-        let error = String::from_utf8_lossy(&output.stderr);
-        Err(format!("Failed to remove certificate: {}", error))
+        if output.status.success() {
+            println!("Certificate removed successfully.");
+            Ok(())
+        } else {
+            let error = String::from_utf8_lossy(&output.stderr);
+            Err(format!("Failed to remove certificate: {}", error))
+        }
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let delete_command = format!("security delete-certificate -Z '{}'", sha1);
+
+        let output = Command::new("sh")
+            .arg("-c")
+            .arg(&delete_command)
+            .output()
+            .map_err(|e| format!("Failed to execute delete command: {}", e))?;
+
+        if output.status.success() {
+            println!("Certificate removed successfully.");
+            Ok(())
+        } else {
+            let error = String::from_utf8_lossy(&output.stderr);
+            Err(format!("Failed to remove certificate: {}", error))
+        }
     }
 }
 
@@ -370,7 +570,6 @@ fn main() {
         });
 
     if sentry_dsn.is_ok() {
-        // console output
         println!("Sentry DSN found: {}", sentry_dsn.clone().unwrap());
 
         let client = sentry::init((
@@ -381,9 +580,7 @@ fn main() {
             },
         ));
 
-        // Everything before here runs in both app and crash reporter processes
         let _guard = minidump::init(&client);
-        // Everything after here runs in only the app process
 
         builder = builder.plugin(tauri_plugin_sentry::init(&client));
     } else {
@@ -406,9 +603,6 @@ fn main() {
             delete_line_from_hosts,
             check_host_exists,
             open_finder_or_explorer,
-            // keychain_passwords::save_password,
-            // keychain_passwords::get_password,
-            // keychain_passwords::delete_password,
             get_hosts_file_context,
             find_certificates,
             remove_cert_by_sha1,
