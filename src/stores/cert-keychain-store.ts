@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { appDataDir, BaseDirectory, homeDir } from "@tauri-apps/api/path";
 import { UnwatchFn, watch } from "@tauri-apps/plugin-fs";
 import { create } from "zustand";
+import { isWindows } from "@/lib/utils";
 
 export interface Certificate {
   sha1: string;
@@ -79,6 +80,59 @@ function parseCertificateOutput(output: string): Certificate[] {
   return certificates;
 }
 
+function parseWindowsCertificateOutput(output: string): Certificate[] {
+  const certificates: Certificate[] = [];
+
+  // Split by "Subject" but keep the delimiter
+  const blocks = output.split(/(?=Subject\s*:)/g).filter((block) => block.trim());
+
+  for (const block of blocks) {
+    try {
+      const lines = block.split("\n").map((line) => line.trim()).filter(line => line);
+      const cert: Partial<Certificate> = {
+        attributes: {},
+      };
+
+      for (const line of lines) {
+        if (line.startsWith("Subject")) {
+          const value = line.split(":").slice(1).join(":").trim();
+          cert.subject = value;
+          cert.name = value; // Use subject as name for consistency with Mac version
+        } else if (line.startsWith("Thumbprint")) {
+          const value = line.split(":").slice(1).join(":").trim();
+          cert.sha1 = value; // Windows uses SHA-1 by default for thumbprint
+          cert.attributes!.thumbprint = value;
+        } else if (line.startsWith("NotAfter")) {
+          const value = line.split(":").slice(1).join(":").trim();
+          cert.attributes!.notAfter = value;
+        } else if (line.startsWith("NotBefore")) {
+          const value = line.split(":").slice(1).join(":").trim();
+          cert.attributes!.notBefore = value;
+        } else if (line.startsWith("Issuer")) {
+          const value = line.split(":").slice(1).join(":").trim();
+          cert.attributes!.issuer = value;
+        } else if (line.includes(":")) {
+          // Handle any other key-value pairs
+          const [key, ...valueParts] = line.split(":");
+          const value = valueParts.join(":").trim();
+          if (key && value) {
+            cert.attributes![key.trim().toLowerCase()] = value;
+          }
+        }
+      }
+
+      // Only add if we have the minimum required fields
+      if (cert.sha1 && cert.name) {
+        certificates.push(cert as Certificate);
+      }
+    } catch (error) {
+      console.error("Failed to parse certificate block:", error);
+    }
+  }
+
+  return certificates;
+}
+
 export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   watcher: null,
   certOnKeychain: {},
@@ -112,7 +166,7 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   findCertificates: async (name: string) => {
     try {
       const output = await invoke<string>("find_certificates", { name });
-      const certificates = parseCertificateOutput(output);
+      const certificates = isWindows() ? parseWindowsCertificateOutput(output) : parseCertificateOutput(output);
       set({ foundCertificates: certificates });
       return certificates;
     } catch (error) {
@@ -155,7 +209,7 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
    */
   findExcatCertificateByName: async (name: string) => {
     const certificates = await get().findCertificates(name);
-    return certificates.find((cert) => cert.name === name);
+    return certificates.find((cert) => cert.name === (isWindows() ? `CN=${name}` : name));
   },
   /**
    * Remove requires the name of the certificate.
@@ -163,7 +217,7 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
    */
   removeCertFromKeychain: async (name) => {
     const certificates = await get().findCertificates(name);
-    const exactMatch = certificates.find((cert) => cert.name === name);
+    const exactMatch = certificates.find((cert) => cert.name === (isWindows() ? `CN=${name}` : name));
 
     if (!exactMatch) {
       throw new Error(`Certificate not found: ${name}`);
@@ -189,6 +243,7 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   addCertToKeychain: async (name) => {
     const appDataDirPath = get().appDataDir;
     const pemFilePath = `${appDataDirPath}/cert/${name}/cert.pem`;
+    console.log({pemFilePath})
     await invoke("add_cert_to_keychain", {
       pem_file_path: pemFilePath,
     });

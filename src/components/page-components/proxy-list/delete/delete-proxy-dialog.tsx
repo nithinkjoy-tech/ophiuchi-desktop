@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
-import { cn } from "@/lib/utils";
+import { cn, isWindows } from "@/lib/utils";
 import type { Certificate } from "@/stores/cert-keychain-store";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import systemStatusStore from "@/stores/system-status";
@@ -92,7 +92,7 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       description: "Delete hostname entry from hosts file",
       manualDescription:
         "Copy and paste the following command into your terminal.",
-      requiresPassword: true,
+      requiresPassword: !isWindows(),
       manualCommand: (proxy: IProxyData) =>
         `sudo sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*'${proxy.hostname}'$/d' /etc/hosts`,
     },

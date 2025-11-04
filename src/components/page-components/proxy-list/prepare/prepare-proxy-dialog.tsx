@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CertificateManager } from "@/helpers/certificate-manager";
 import { IProxyData } from "@/helpers/proxy-manager/interfaces";
-import { cn } from "@/lib/utils";
+import { cn, isWindows } from "@/lib/utils";
 import { certKeychainStore } from "@/stores/cert-keychain-store";
 import { hostsStore } from "@/stores/hosts-store";
 import proxyListStore from "@/stores/proxy-list";
@@ -122,7 +122,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
             .
           </>
         ),
-        requiresPassword: true,
+        requiresPassword: !isWindows(),
       },
     ],
     [],
@@ -156,6 +156,8 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
           return result;
         }),
       ]);
+
+      console.log("initial check", certInKeychain, hostExists, keychainCommand)
 
       setStepStatuses((prev) => ({
         ...prev,
@@ -201,6 +203,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   };
 
   const updateStepStatus = (step: number, status: Partial<StepStatus>) => {
+    console.log("updating step")
     setStepStatuses((prev) => ({
       ...prev,
       [step]: { ...prev[step], ...status },
@@ -211,6 +214,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     updateStepStatus(step, { loading: true });
 
     try {
+      console.log({ stepCatch: step });
       switch (step) {
         case 1:
           await addCertToKeychain(proxy.hostname);
@@ -219,6 +223,8 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
           await addHostToFile(proxy.hostname, password);
           break;
       }
+
+      console.log(step, "compllted")
 
       updateStepStatus(step, { completed: true, loading: false });
       return true;
