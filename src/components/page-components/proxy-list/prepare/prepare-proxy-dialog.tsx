@@ -63,8 +63,10 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   const [certExists, setCertExists] = useState(false);
   const [certGenerating, setCertGenerating] = useState(false);
   const [manualCommands, setManualCommands] = useState<Record<number, string>>({
-    1: "", // keychain command
-    2: `sudo sh -c 'echo "127.0.0.1 ${proxy.hostname}" >> /etc/hosts'`, // hosts command
+    1: "", // keychain/certutil command
+    2: isWindows()
+      ? `Add-Content -Path C:\\Windows\\System32\\drivers\\etc\\hosts -Value "127.0.0.1 ${proxy.hostname}" -Force`
+      : `sudo sh -c 'echo "127.0.0.1 ${proxy.hostname}" >> /etc/hosts'`, // hosts command
   });
   const [stepStatuses, setStepStatuses] = useState<Record<number, StepStatus>>({
     1: { completed: false, loading: false },
@@ -478,8 +480,10 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
                   <div className="flex items-center gap-2">
                     <ShieldAlert className="h-3.5 w-3.5 text-yellow-500" />
                     <p className="text-xs text-muted-foreground">
-                      Follow these steps carefully. System password will be
-                      required for some operations.
+                      {isWindows()
+                        ? "Follow these steps carefully. Administrator privileges will be required for some operations."
+                        : "Follow these steps carefully. System password will be required for some operations."
+                      }
                     </p>
                   </div>
 

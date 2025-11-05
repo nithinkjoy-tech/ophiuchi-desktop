@@ -1,4 +1,6 @@
 //! Windows-only helpers – **no** `#[tauri::command]` here
+use std::fs;
+use std::env::temp_dir;
 use std::process::Command;
 use regex;
 
@@ -160,8 +162,9 @@ pub fn find_certs(name: String) -> Result<String, String> {
 }
 
 pub fn remove_cert_by_sha1(sha1: String) -> Result<(), String> {
+    println!("removing certficated");
     let ps = format!(
-        "$c = Get-ChildItem Cert:\\CurrentUser\\Root | ? {{ $_.Thumbprint -eq '{}' }}; \
+        "$c = Get-ChildItem Cert:\\CurrentUser\\Root | Where-Object {{ $_.Thumbprint -eq '{}' }}; \
          if ($c) {{ Remove-Item $c.PSPath -Force }}",
         sha1
     );
@@ -169,10 +172,7 @@ pub fn remove_cert_by_sha1(sha1: String) -> Result<(), String> {
     let out = Command::new("powershell")
         .arg("-NoProfile")
         .arg("-Command")
-        .arg(&format!(
-            "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile','-Command','{}' -Wait",
-            ps.replace("'", "''")
-        ))
+        .arg(&ps)
         .output()
         .map_err(|e| format!("cmd: {}", e))?;
 

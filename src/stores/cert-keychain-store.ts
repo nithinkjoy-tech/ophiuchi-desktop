@@ -218,7 +218,7 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   removeCertFromKeychain: async (name) => {
     const certificates = await get().findCertificates(name);
     const exactMatch = certificates.find((cert) => cert.name === (isWindows() ? `CN=${name}` : name));
-
+    console.log({exactMatch})
     if (!exactMatch) {
       throw new Error(`Certificate not found: ${name}`);
     }
@@ -243,7 +243,6 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
   addCertToKeychain: async (name) => {
     const appDataDirPath = get().appDataDir;
     const pemFilePath = `${appDataDirPath}/cert/${name}/cert.pem`;
-    console.log({pemFilePath})
     await invoke("add_cert_to_keychain", {
       pem_file_path: pemFilePath,
     });
@@ -257,10 +256,15 @@ export const certKeychainStore = create<CertKeychainStore>((set, get) => ({
     const homeDirectory = get().homeDir;
     const appDataDirPath = get().appDataDir;
 
-    const keychainPath = `${homeDirectory}/Library/Keychains/login.keychain-db`;
-    const pemFilePath = `${appDataDirPath}/cert/${name}/cert.pem`;
-
-    const command = `security add-trusted-cert -k ${keychainPath} \"${pemFilePath}\"`;
-    return command;
+    if (isWindows()) {
+      const pemFilePath = `${appDataDirPath}\\cert\\${name}\\cert.pem`;
+      const command = `certutil -addstore -user Root "${pemFilePath}"`;
+      return command;
+    } else {
+      const keychainPath = `${homeDirectory}/Library/Keychains/login.keychain-db`;
+      const pemFilePath = `${appDataDirPath}/cert/${name}/cert.pem`;
+      const command = `security add-trusted-cert -k ${keychainPath} "${pemFilePath}"`;
+      return command;
+    }
   },
 }));

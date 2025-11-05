@@ -401,8 +401,10 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
                 <div className="flex items-center gap-2">
                   <TriangleAlertIcon className="h-3 w-3 text-yellow-500" />
                   <p className="text-xs text-muted-foreground">
-                    Follow these steps carefully. System password will be
-                    required for some operations.
+                    {isWindows()
+                      ? "Follow these steps carefully. Administrator privileges will be required for some operations."
+                      : "Follow these steps carefully. System password will be required for some operations."
+                    }
                   </p>
                 </div>
 
