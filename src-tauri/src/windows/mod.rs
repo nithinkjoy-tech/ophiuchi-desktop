@@ -188,6 +188,7 @@ pub fn cert_exists(name: String) -> Result<bool, String> {
     );
 
     let out = Command::new("powershell")
+        .creation_flags(0x08000000)
         .arg("-NoProfile")
         .arg("-NonInteractive")
         .arg("-Command")
@@ -206,6 +207,7 @@ pub fn find_certs(name: String) -> Result<String, String> {
     );
 
     let out = Command::new("powershell")
+        .creation_flags(0x08000000)
         .arg("-NoProfile")
         .arg("-NonInteractive")
         .arg("-Command")
