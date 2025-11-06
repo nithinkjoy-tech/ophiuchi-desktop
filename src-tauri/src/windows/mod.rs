@@ -3,24 +3,70 @@ use std::fs;
 use std::env::temp_dir;
 use std::process::Command;
 use regex;
+use std::io::{BufRead, BufReader, Write};
+use std::path::PathBuf;
+use std::os::windows::process::CommandExt;
 
 pub fn append_to_hosts(line: &str) {
     let hosts_path = r"C:\Windows\System32\drivers\etc\hosts";
 
+    match read_and_prepare_content(hosts_path, line) {
+        Ok(new_content) => {
+            write_hosts_file_via_temp(hosts_path, &new_content);
+        }
+        Err(e) => {
+            println!("Could not read hosts file: {}", e);
+        }
+    }
+}
+
+fn read_and_prepare_content(path: &str, new_line: &str) -> std::io::Result<String> {
+    let file = fs::File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let mut lines: Vec<String> = reader.lines()
+        .filter_map(|l| l.ok())
+        .collect();
+
+    while lines.last().map_or(false, |l| l.trim().is_empty()) {
+        lines.pop();
+    }
+
+    lines.push(String::new());
+    lines.push(new_line.to_string());
+    Ok(lines.join("\r\n"))
+}
+
+fn write_hosts_file_via_temp(hosts_path: &str, content: &str) {
+    let temp_dir = std::env::temp_dir();
+    let temp_file = temp_dir.join("hosts_temp.txt");
+
+    match fs::write(&temp_file, content) {
+        Ok(_) => println!("Wrote to temp file: {:?}", temp_file),
+        Err(e) => {
+            println!("Failed to write temp file: {}", e);
+            return;
+        }
+    }
+
+    let temp_path_str = temp_file.to_str().unwrap();
+
     let ps = format!(
-        "Add-Content -Path '{}' -Value '{}' -Force",
-        hosts_path, line
+        "Copy-Item -Path '{}' -Destination '{}' -Force",
+        temp_path_str, hosts_path
     );
 
-    let _ = Command::new("powershell")
+    let result = Command::new("powershell")
         .arg("-WindowStyle").arg("Hidden")
         .arg("-Command")
         .arg(&format!(
             "Start-Process powershell -Verb RunAs -WindowStyle Hidden \
-             -ArgumentList '-WindowStyle','Hidden','-Command','{}' -Wait",
-            ps.replace("'", "''")
+             -ArgumentList '-WindowStyle','Hidden','-Command',\"{}\" -Wait",
+            ps.replace("\"", "`\"")
         ))
         .status();
+
+    let _ = fs::remove_file(&temp_file);
 }
 
 pub fn delete_line(hostname: &str) {
@@ -28,14 +74,26 @@ pub fn delete_line(hostname: &str) {
     let esc = regex::escape(hostname);
 
     if let Ok(content) = std::fs::read_to_string(hosts_path) {
-        let new: Vec<_> = content
-            .lines()
-            .filter(|l| {
-                let re = regex::Regex::new(&format!(r"^127\.0\.0\.1\s+{}\s*$", esc)).unwrap();
-                !re.is_match(l.trim())
-            })
-            .map(|s| s.to_string())
-            .collect();
+        let lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+        let re = regex::Regex::new(&format!(r"^127\.0\.0\.1\s+{}\s*$", esc)).unwrap();
+
+        let mut new: Vec<String> = Vec::new();
+        let mut i = 0;
+
+        while i < lines.len() {
+            let current_line = &lines[i];
+
+            if re.is_match(current_line.trim()) {
+                if !new.is_empty() && new.last().unwrap().trim().is_empty() {
+                    new.pop();
+                }
+                i += 1;
+                continue;
+            }
+
+            new.push(current_line.clone());
+            i += 1;
+        }
 
         let ps = format!(
             "$c = @'\n{}\n'@; Set-Content -Path '{}' -Value $c -Force",
@@ -43,9 +101,11 @@ pub fn delete_line(hostname: &str) {
         );
 
         let _ = Command::new("powershell")
+            .arg("-WindowStyle").arg("Hidden")
             .arg("-Command")
             .arg(&format!(
-                "Start-Process powershell -Verb RunAs -ArgumentList '-Command','{}' -Wait",
+                "Start-Process powershell -Verb RunAs -WindowStyle Hidden \
+                 -ArgumentList '-WindowStyle','Hidden','-Command','{}' -Wait",
                 ps.replace("'", "''")
             ))
             .status();
@@ -78,20 +138,21 @@ pub fn add_cert(pem: String) -> Result<(), String> {
     );
 
     let out = Command::new("powershell")
+        .creation_flags(0x08000000) // We don't want to show any powershell window to the user
+        .arg("-WindowStyle").arg("Hidden")
         .arg("-NoProfile")
         .arg("-Command")
         .arg(&format!(
-            "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile','-Command','{}' -Wait",
+            "Start-Process powershell -Verb RunAs -WindowStyle Hidden \
+             -ArgumentList '-WindowStyle','Hidden','-NoProfile','-Command','{}' -Wait",
             ps.replace("'", "''")
         ))
         .output()
         .map_err(|e| format!("cmd: {}", e))?;
 
     if out.status.success() {
-        println!("addifnf success");
         Ok(())
     } else {
-        println!("addifnf failed");
         Err(String::from_utf8_lossy(&out.stderr).into())
     }
 }
@@ -153,16 +214,13 @@ pub fn find_certs(name: String) -> Result<String, String> {
         .map_err(|e| format!("cmd: {}", e))?;
 
     if out.status.success() {
-        println!("certificate found");
         Ok(String::from_utf8_lossy(&out.stdout).into())
     } else {
-        println!("Err finding cert");
         Err(String::from_utf8_lossy(&out.stderr).into())
     }
 }
 
 pub fn remove_cert_by_sha1(sha1: String) -> Result<(), String> {
-    println!("removing certficated");
     let ps = format!(
         "$c = Get-ChildItem Cert:\\CurrentUser\\Root | Where-Object {{ $_.Thumbprint -eq '{}' }}; \
          if ($c) {{ Remove-Item $c.PSPath -Force }}",
