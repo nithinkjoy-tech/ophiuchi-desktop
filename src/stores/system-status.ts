@@ -63,7 +63,6 @@ const systemStatusStore = create<SystemStatusStore>((set, get) => ({
     dockerComposePath: string,
   ): Promise<DockerContainerStatus> => {
     try {
-      console.log({ dockerComposePath });
 
       const fileExists = await exists(dockerComposePath);
       if (!fileExists) {
@@ -97,8 +96,11 @@ const systemStatusStore = create<SystemStatusStore>((set, get) => ({
       }
 
       // Parse the JSON output
-      const containers = JSON.parse(result.stdout);
-      // console.log(containers);
+      let containers = JSON.parse(result.stdout);
+
+      if (!Array.isArray(containers)) {
+        containers = [containers]
+      }
       // Check if any container is running
       // Docker compose ps returns an array of containers with their states
       const runningContainers = containers.filter(
