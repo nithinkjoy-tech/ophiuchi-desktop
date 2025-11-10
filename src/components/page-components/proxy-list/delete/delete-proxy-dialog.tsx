@@ -91,10 +91,15 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
       title: "Remove from /etc/hosts",
       description: "Delete hostname entry from hosts file",
       manualDescription:
-        "Copy and paste the following command into your terminal.",
+        isWindows() ? "Manually remove as per instruction" : "Copy and paste the following command into your terminal.",
       requiresPassword: !isWindows(),
-      manualCommand: (proxy: IProxyData) =>
-        `sudo sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*'${proxy.hostname}'$/d' /etc/hosts`,
+      manualCommand: (proxy: IProxyData) => {
+        if (isWindows()) {
+          return `Open C:\\Windows\\System32\\drivers\\etc\\hosts file using notepad with admin previlege and manually remove 127.0.0.1 ${proxy.hostname}`
+        } else {
+          return `sudo sed -i '' '/^127\\.0\\.0\\.1[[:space:]]*${proxy.hostname}$/d' /etc/hosts`;
+        }
+      },
     },
     {
       step: 2,
@@ -104,11 +109,15 @@ export function DeleteProxyDialog({ proxy, onDelete }: DeleteProxyDialogProps) {
         "Copy and paste the following command into your terminal.",
       requiresPassword: false,
       manualCommand: (proxy: IProxyData) => {
-        // get the SHA-1
         const sha1 = foundCertificates.find(
           (cert) => cert.name === proxy.hostname,
         )?.sha1;
-        return `security delete-certificate -Z "${sha1}"`;
+
+        if (isWindows()) {
+          return `powershell -Command "Get-ChildItem -Path Cert:\\LocalMachine\\Root | Where-Object { $_.Thumbprint -eq '${sha1}' } | Remove-Item"`;
+        } else {
+          return `security delete-certificate -Z "${sha1}"`;
+        }
       },
     },
     {

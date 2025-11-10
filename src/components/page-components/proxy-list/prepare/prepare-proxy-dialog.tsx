@@ -65,7 +65,7 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   const [manualCommands, setManualCommands] = useState<Record<number, string>>({
     1: "", // keychain/certutil command
     2: isWindows()
-      ? `Add-Content -Path C:\\Windows\\System32\\drivers\\etc\\hosts -Value "127.0.0.1 ${proxy.hostname}" -Force`
+      ? `Start-Process powershell -Verb RunAs -ArgumentList "-Command \`"Add-Content -Path C:\\Windows\\System32\\drivers\\etc\\hosts -Value '127.0.0.1 ${proxy.hostname}' -Force\`""`
       : `sudo sh -c 'echo "127.0.0.1 ${proxy.hostname}" >> /etc/hosts'`, // hosts command
   });
   const [stepStatuses, setStepStatuses] = useState<Record<number, StepStatus>>({
