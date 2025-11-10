@@ -9,7 +9,6 @@ interface HostsStore {
 
 export const hostsStore = create<HostsStore>()((set) => ({
   checkHostExists: async (hostname: string) => {
-    console.log({ hostname });
     try {
       const exists = await invoke<boolean>("check_host_exists", { hostname });
       return exists;

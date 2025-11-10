@@ -172,8 +172,15 @@ fn main() {
                 ..Default::default()
             },
         ));
+
+        // Everything before here runs in both app and crash reporter processes
         let _guard = minidump::init(&client);
+        // Everything after here runs in only the app process
+
         builder = builder.plugin(tauri_plugin_sentry::init(&client));
+    } else {
+        println!("No Sentry DSN found.");
+    }
     }
 
     builder

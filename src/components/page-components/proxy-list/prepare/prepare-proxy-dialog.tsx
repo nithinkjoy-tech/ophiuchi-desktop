@@ -159,8 +159,6 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
         }),
       ]);
 
-      console.log("initial check", certInKeychain, hostExists, keychainCommand)
-
       setStepStatuses((prev) => ({
         ...prev,
         1: { ...prev[1], completed: certInKeychain },
@@ -205,7 +203,6 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   };
 
   const updateStepStatus = (step: number, status: Partial<StepStatus>) => {
-    console.log("updating step")
     setStepStatuses((prev) => ({
       ...prev,
       [step]: { ...prev[step], ...status },
@@ -216,7 +213,6 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
     updateStepStatus(step, { loading: true });
 
     try {
-      console.log({ stepCatch: step });
       switch (step) {
         case 1:
           await addCertToKeychain(proxy.hostname);
@@ -225,8 +221,6 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
           await addHostToFile(proxy.hostname, password);
           break;
       }
-
-      console.log(step, "compllted")
 
       updateStepStatus(step, { completed: true, loading: false });
       return true;
@@ -242,7 +236,6 @@ export function PrepareProxyDialog({ proxy, onDone }: PrepareProxyDialogProps) {
   };
 
   useEffect(() => {
-    console.log({ steps, stepStatuses });
     const everyStepCompleted = steps.every(
       (step) => stepStatuses[step.step].completed,
     );

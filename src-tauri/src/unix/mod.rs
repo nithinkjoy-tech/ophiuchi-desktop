@@ -66,7 +66,6 @@ pub fn add_cert(pem: String) -> Result<(), String> {
 }
 
 pub fn remove_cert(name: String) -> Result<(), String> {
-    // find SHA-1 hash
     let find = format!(
         "security find-certificate -c '{}' -Z | grep SHA-1 | awk '{{print $NF}}'",
         name
@@ -87,7 +86,6 @@ pub fn remove_cert(name: String) -> Result<(), String> {
         return Err("cert not found".into());
     }
 
-    // delete
     let del = format!("security delete-certificate -Z '{}'", hash);
     let out = Command::new("sh")
         .arg("-c")

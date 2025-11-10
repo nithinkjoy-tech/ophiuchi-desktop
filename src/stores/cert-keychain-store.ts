@@ -83,7 +83,6 @@ function parseCertificateOutput(output: string): Certificate[] {
 function parseWindowsCertificateOutput(output: string): Certificate[] {
   const certificates: Certificate[] = [];
 
-  // Split by "Subject" but keep the delimiter
   const blocks = output.split(/(?=Subject\s*:)/g).filter((block) => block.trim());
 
   for (const block of blocks) {
@@ -97,10 +96,10 @@ function parseWindowsCertificateOutput(output: string): Certificate[] {
         if (line.startsWith("Subject")) {
           const value = line.split(":").slice(1).join(":").trim();
           cert.subject = value;
-          cert.name = value; // Use subject as name for consistency with Mac version
+          cert.name = value;
         } else if (line.startsWith("Thumbprint")) {
           const value = line.split(":").slice(1).join(":").trim();
-          cert.sha1 = value; // Windows uses SHA-1 by default for thumbprint
+          cert.sha1 = value;
           cert.attributes!.thumbprint = value;
         } else if (line.startsWith("NotAfter")) {
           const value = line.split(":").slice(1).join(":").trim();
@@ -112,7 +111,6 @@ function parseWindowsCertificateOutput(output: string): Certificate[] {
           const value = line.split(":").slice(1).join(":").trim();
           cert.attributes!.issuer = value;
         } else if (line.includes(":")) {
-          // Handle any other key-value pairs
           const [key, ...valueParts] = line.split(":");
           const value = valueParts.join(":").trim();
           if (key && value) {
@@ -121,7 +119,6 @@ function parseWindowsCertificateOutput(output: string): Certificate[] {
         }
       }
 
-      // Only add if we have the minimum required fields
       if (cert.sha1 && cert.name) {
         certificates.push(cert as Certificate);
       }
