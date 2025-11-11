@@ -1,10 +1,8 @@
 //! Windows-only helpers – **no** `#[tauri::command]` here
 use std::fs;
-use std::env::temp_dir;
 use std::process::Command;
 use regex;
-use std::io::{BufRead, BufReader, Write};
-use std::path::PathBuf;
+use std::io::{BufRead, BufReader};
 use std::os::windows::process::CommandExt;
 
 pub fn append_to_hosts(line: &str) {
@@ -56,7 +54,7 @@ fn write_hosts_file_via_temp(hosts_path: &str, content: &str) {
         temp_path_str, hosts_path
     );
 
-    let result = Command::new("powershell")
+    let _ = Command::new("powershell")
         .arg("-WindowStyle").arg("Hidden")
         .arg("-Command")
         .arg(&format!(
