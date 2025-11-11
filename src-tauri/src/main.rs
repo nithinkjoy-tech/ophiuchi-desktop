@@ -2,7 +2,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod keychainmgr;
+
+#[cfg(target_os = "windows")]
 mod windows;
+
+#[cfg(not(target_os = "windows"))]
 mod unix;
 
 use dotenv::dotenv;
