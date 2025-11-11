@@ -181,7 +181,6 @@ fn main() {
     } else {
         println!("No Sentry DSN found.");
     }
-    }
 
     builder
         .plugin(tauri_plugin_process::init())
